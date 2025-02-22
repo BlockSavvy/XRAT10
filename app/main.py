@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Dict, List
 import os
 import logging
+from tweepy import errors as tweepy_errors
 
 from app.core.config import get_settings
 from app.db.models import get_db, Analysis
@@ -22,6 +23,10 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(title=get_settings().APP_NAME)
+
+# Create event loop for async operations
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -158,62 +163,71 @@ async def analyze_thread(tweet_id: str) -> Dict:
         if not api:
             raise HTTPException(status_code=503, detail="API client not available")
 
-        # Get original tweet
-        original_tweet = api.get_status(tweet_id, tweet_mode="extended")
-        original_text = original_tweet.full_text
-        
-        # Get replies
-        replies = []
-        for tweet in tweepy.Cursor(api.search_tweets,
-                                 q=f"to:{original_tweet.user.screen_name}",
-                                 since_id=tweet_id,
-                                 tweet_mode="extended").items(100):
-            reply_data = {
-                "text": tweet.full_text,
-                "author": tweet.user.screen_name,
-                "created_at": tweet.created_at,
-                "user": {
-                    "created_at": tweet.user.created_at,
-                    "statuses_count": tweet.user.statuses_count,
-                    "followers_count": tweet.user.followers_count,
-                    "friends_count": tweet.user.friends_count,
-                    "default_profile": tweet.user.default_profile,
-                    "description": tweet.user.description
+        try:
+            # Get original tweet
+            original_tweet = api.get_status(tweet_id, tweet_mode="extended")
+            original_text = original_tweet.full_text
+            
+            # Get replies
+            replies = []
+            for tweet in tweepy.Cursor(api.search_tweets,
+                                     q=f"to:{original_tweet.user.screen_name}",
+                                     since_id=tweet_id,
+                                     tweet_mode="extended").items(100):
+                reply_data = {
+                    "text": tweet.full_text,
+                    "author": tweet.user.screen_name,
+                    "created_at": tweet.created_at,
+                    "user": {
+                        "created_at": tweet.user.created_at,
+                        "statuses_count": tweet.user.statuses_count,
+                        "followers_count": tweet.user.followers_count,
+                        "friends_count": tweet.user.friends_count,
+                        "default_profile": tweet.user.default_profile,
+                        "description": tweet.user.description
+                    }
                 }
+                replies.append(reply_data)
+            
+            # Analyze sentiment
+            sentiment_stats = sentiment_analyzer.analyze_thread(replies)
+            
+            # Analyze bots
+            bot_count = 0
+            bot_risk_factors = []
+            for reply in replies:
+                is_bot, risk_factors = bot_detector.analyze_account(reply["user"])
+                if is_bot:
+                    bot_count += 1
+                bot_risk_factors.append(risk_factors)
+            
+            # Calculate bot percentage
+            bot_percentage = (bot_count / len(replies) * 100) if replies else 0
+            
+            # Combine all stats
+            analysis_results = {
+                "tweet_id": tweet_id,
+                "original_text": original_text,
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "total_replies": len(replies),
+                "sentiment_stats": sentiment_stats,
+                "bot_percentage": bot_percentage,
+                "bot_risk_factors": bot_risk_factors
             }
-            replies.append(reply_data)
-        
-        # Analyze sentiment
-        sentiment_stats = sentiment_analyzer.analyze_thread(replies)
-        
-        # Analyze bots
-        bot_count = 0
-        bot_risk_factors = []
-        for reply in replies:
-            is_bot, risk_factors = bot_detector.analyze_account(reply["user"])
-            if is_bot:
-                bot_count += 1
-            bot_risk_factors.append(risk_factors)
-        
-        # Calculate bot percentage
-        bot_percentage = (bot_count / len(replies) * 100) if replies else 0
-        
-        # Combine all stats
-        analysis_results = {
-            "tweet_id": tweet_id,
-            "original_text": original_text,
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "total_replies": len(replies),
-            "sentiment_stats": sentiment_stats,
-            "bot_percentage": bot_percentage,
-            "bot_risk_factors": bot_risk_factors
-        }
-        
-        return analysis_results
-        
-    except tweepy.TweepError as e:
-        raise HTTPException(status_code=400, detail=f"Error analyzing thread: {str(e)}")
+            
+            return analysis_results
+            
+        except (tweepy_errors.NotFound, tweepy_errors.Forbidden) as e:
+            raise HTTPException(status_code=404, detail="Tweet not found or not accessible")
+        except tweepy_errors.TooManyRequests as e:
+            raise HTTPException(status_code=429, detail="Rate limit exceeded. Please try again later")
+        except tweepy_errors.TweepyException as e:
+            raise HTTPException(status_code=400, detail=f"Error analyzing thread: {str(e)}")
+            
+    except HTTPException as e:
+        raise e
     except Exception as e:
+        logger.error(f"Unexpected error in analyze_thread: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 async def post_reply(tweet_id: str, analysis_results: Dict):
@@ -225,22 +239,34 @@ async def post_reply(tweet_id: str, analysis_results: Dict):
         if not api:
             raise HTTPException(status_code=503, detail="API client not available")
 
-        # Get response tone
-        tone = sentiment_analyzer.get_response_tone(analysis_results["sentiment_stats"])
-        
-        # Craft response based on tone
-        response = craft_response(analysis_results, tone)
-        
-        # Post reply
-        api.update_status(
-            status=response,
-            in_reply_to_status_id=tweet_id,
-            auto_populate_reply_metadata=True
-        )
-        
-        return response
+        try:
+            # Get response tone
+            tone = sentiment_analyzer.get_response_tone(analysis_results["sentiment_stats"])
+            
+            # Craft response based on tone
+            response = craft_response(analysis_results, tone)
+            
+            # Post reply
+            api.update_status(
+                status=response,
+                in_reply_to_status_id=tweet_id,
+                auto_populate_reply_metadata=True
+            )
+            
+            return response
+            
+        except tweepy_errors.Forbidden as e:
+            logger.error(f"Permission error posting reply: {e}")
+            return None
+        except tweepy_errors.TooManyRequests as e:
+            logger.error("Rate limit exceeded when posting reply")
+            return None
+        except tweepy_errors.TweepyException as e:
+            logger.error(f"Error posting reply: {e}")
+            return None
+            
     except Exception as e:
-        print(f"Error posting reply: {e}")
+        logger.error(f"Unexpected error in post_reply: {e}")
         return None
 
 def craft_response(analysis_results: Dict, tone: str) -> str:
@@ -291,6 +317,16 @@ def craft_response(analysis_results: Dict, tone: str) -> str:
         response = response[:277] + "..."
     
     return response
+
+async def analyze_and_reply(tweet_id: str):
+    """
+    Analyze a tweet and post a reply.
+    """
+    try:
+        analysis_results = await analyze_thread(tweet_id)
+        await post_reply(tweet_id, analysis_results)
+    except Exception as e:
+        logger.error(f"Error in analyze_and_reply: {e}")
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
