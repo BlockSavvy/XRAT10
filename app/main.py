@@ -16,6 +16,7 @@ from app.core.config import get_settings
 from app.db.models import get_db, Analysis
 from app.services.sentiment import SentimentAnalyzer
 from app.services.bot_detection import BotDetector
+from app.services.grok_ai import GrokAI
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +38,7 @@ templates = Jinja2Templates(directory="app/templates")
 settings = get_settings()
 sentiment_analyzer = SentimentAnalyzer()
 bot_detector = BotDetector()
+grok_ai = GrokAI()
 
 # X API setup - Move inside a function to avoid startup errors
 def get_api_client():
@@ -154,177 +156,106 @@ class TweetStream(tweepy.StreamingClient):
             return False
         return True
 
-async def analyze_thread(tweet_id: str) -> Dict:
+async def analyze_thread(api, tweet_id: str) -> Dict:
     """
     Analyze a thread including the original tweet and its replies.
     """
     try:
-        api = get_api_client()
-        if not api:
-            raise HTTPException(status_code=503, detail="API client not available")
-
-        try:
-            # Get original tweet
-            original_tweet = api.get_status(tweet_id, tweet_mode="extended")
-            original_text = original_tweet.full_text
-            
-            # Get replies
-            replies = []
-            for tweet in tweepy.Cursor(api.search_tweets,
-                                     q=f"to:{original_tweet.user.screen_name}",
-                                     since_id=tweet_id,
-                                     tweet_mode="extended").items(100):
-                reply_data = {
-                    "text": tweet.full_text,
-                    "author": tweet.user.screen_name,
-                    "created_at": tweet.created_at,
-                    "user": {
-                        "created_at": tweet.user.created_at,
-                        "statuses_count": tweet.user.statuses_count,
-                        "followers_count": tweet.user.followers_count,
-                        "friends_count": tweet.user.friends_count,
-                        "default_profile": tweet.user.default_profile,
-                        "description": tweet.user.description
-                    }
+        # Get original tweet
+        original_tweet = api.get_status(tweet_id, tweet_mode="extended")
+        original_text = original_tweet.full_text
+        
+        # Get replies
+        replies = []
+        for tweet in tweepy.Cursor(api.search_tweets,
+                                 q=f"to:{original_tweet.user.screen_name}",
+                                 since_id=tweet_id,
+                                 tweet_mode="extended").items(100):
+            reply_data = {
+                "text": tweet.full_text,
+                "author": tweet.user.screen_name,
+                "created_at": tweet.created_at,
+                "user": {
+                    "created_at": tweet.user.created_at,
+                    "statuses_count": tweet.user.statuses_count,
+                    "followers_count": tweet.user.followers_count,
+                    "friends_count": tweet.user.friends_count,
+                    "default_profile": tweet.user.default_profile,
+                    "description": tweet.user.description
                 }
-                replies.append(reply_data)
-            
-            # Analyze sentiment
-            sentiment_stats = sentiment_analyzer.analyze_thread(replies)
-            
-            # Analyze bots
-            bot_count = 0
-            bot_risk_factors = []
-            for reply in replies:
-                is_bot, risk_factors = bot_detector.analyze_account(reply["user"])
-                if is_bot:
-                    bot_count += 1
-                bot_risk_factors.append(risk_factors)
-            
-            # Calculate bot percentage
-            bot_percentage = (bot_count / len(replies) * 100) if replies else 0
-            
-            # Combine all stats
-            analysis_results = {
-                "tweet_id": tweet_id,
-                "original_text": original_text,
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "total_replies": len(replies),
-                "sentiment_stats": sentiment_stats,
-                "bot_percentage": bot_percentage,
-                "bot_risk_factors": bot_risk_factors
             }
-            
-            return analysis_results
-            
-        except (tweepy_errors.NotFound, tweepy_errors.Forbidden) as e:
-            raise HTTPException(status_code=404, detail="Tweet not found or not accessible")
-        except tweepy_errors.TooManyRequests as e:
-            raise HTTPException(status_code=429, detail="Rate limit exceeded. Please try again later")
-        except tweepy_errors.TweepyException as e:
-            raise HTTPException(status_code=400, detail=f"Error analyzing thread: {str(e)}")
-            
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        logger.error(f"Unexpected error in analyze_thread: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+            replies.append(reply_data)
+        
+        # Analyze sentiment
+        sentiment_stats = sentiment_analyzer.analyze_thread(replies)
+        
+        # Analyze bots
+        bot_count = 0
+        bot_risk_factors = []
+        for reply in replies:
+            is_bot, risk_factors = bot_detector.analyze_account(reply["user"])
+            if is_bot:
+                bot_count += 1
+            bot_risk_factors.append(risk_factors)
+        
+        # Calculate bot percentage
+        bot_percentage = (bot_count / len(replies) * 100) if replies else 0
+        
+        # Combine all stats
+        analysis_results = {
+            "tweet_id": tweet_id,
+            "original_text": original_text,
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "total_replies": len(replies),
+            "sentiment_stats": sentiment_stats,
+            "bot_percentage": bot_percentage,
+            "bot_risk_factors": bot_risk_factors
+        }
+        
+        return analysis_results
+        
+    except (tweepy_errors.NotFound, tweepy_errors.Forbidden) as e:
+        raise HTTPException(status_code=404, detail="Tweet not found or not accessible")
+    except tweepy_errors.TooManyRequests as e:
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Please try again later")
+    except tweepy_errors.TweepyException as e:
+        raise HTTPException(status_code=400, detail=f"Error analyzing thread: {str(e)}")
 
-async def post_reply(tweet_id: str, analysis_results: Dict):
+async def post_reply(api, tweet_id: str, response_text: str):
     """
     Post a reply with analysis results.
     """
     try:
-        api = get_api_client()
-        if not api:
-            raise HTTPException(status_code=503, detail="API client not available")
-
-        try:
-            # Get response tone
-            tone = sentiment_analyzer.get_response_tone(analysis_results["sentiment_stats"])
-            
-            # Craft response based on tone
-            response = craft_response(analysis_results, tone)
-            
-            # Post reply
-            api.update_status(
-                status=response,
-                in_reply_to_status_id=tweet_id,
-                auto_populate_reply_metadata=True
-            )
-            
-            return response
-            
-        except tweepy_errors.Forbidden as e:
-            logger.error(f"Permission error posting reply: {e}")
-            return None
-        except tweepy_errors.TooManyRequests as e:
-            logger.error("Rate limit exceeded when posting reply")
-            return None
-        except tweepy_errors.TweepyException as e:
-            logger.error(f"Error posting reply: {e}")
-            return None
-            
-    except Exception as e:
-        logger.error(f"Unexpected error in post_reply: {e}")
+        # Post reply
+        api.update_status(
+            status=response_text,
+            in_reply_to_status_id=tweet_id,
+            auto_populate_reply_metadata=True
+        )
+        
+        return response_text
+        
+    except tweepy_errors.Forbidden as e:
+        logger.error(f"Permission error posting reply: {e}")
         return None
-
-def craft_response(analysis_results: Dict, tone: str) -> str:
-    """
-    Craft a response based on analysis results and tone.
-    """
-    stats = analysis_results["sentiment_stats"]
-    
-    # Select intro based on tone
-    intros = {
-        "celebratory": "The crowd's all in—time to pop the champagne! 🎉",
-        "empathetic_firm": "Wow, the haters are out in force. Don't worry, I've got your back! 😏",
-        "positive_balanced": "The vibes are good in this thread! Let's break it down. ✨",
-        "diplomatic_balanced": "Interesting discussion here. Let me share what I found. ��",
-        "neutral_analytical": "Here's an objective analysis of this thread. 📊"
-    }
-    
-    intro = intros.get(tone, intros["neutral_analytical"])
-    
-    # Format stats
-    stats_text = (
-        f"Thread Stats:\n"
-        f"📊 {analysis_results['total_replies']} replies analyzed\n"
-        f"👍 {stats['percentages']['with']:.1f}% positive\n"
-        f"👎 {stats['percentages']['against']:.1f}% negative\n"
-        f"😐 {stats['percentages']['neutral']:.1f}% neutral\n"
-        f"🤖 {analysis_results['bot_percentage']:.1f}% likely bots"
-    )
-    
-    # Add notable quote if available
-    quote_text = ""
-    if stats["notable_quotes"]:
-        quote = stats["notable_quotes"][0]
-        sentiment = "💫" if quote["score"] > 0 else "💭"
-        quote_text = f"\n\nStandout Take {sentiment}\n@{quote['author']}: '{quote['text'][:100]}...'"
-    
-    # Add trending keywords if available
-    keywords_text = ""
-    if stats["keywords"]:
-        top_keywords = list(stats["keywords"].items())[:3]
-        keywords_text = "\n\nTrending Keywords: " + ", ".join(f"#{k}" for k, _ in top_keywords)
-    
-    # Combine all parts
-    response = f"{intro}\n\n{stats_text}{quote_text}{keywords_text}\n\n#ThreadAnalysis"
-    
-    # Ensure response is within X's character limit
-    if len(response) > 280:
-        response = response[:277] + "..."
-    
-    return response
+    except tweepy_errors.TooManyRequests as e:
+        logger.error("Rate limit exceeded when posting reply")
+        return None
+    except tweepy_errors.TweepyException as e:
+        logger.error(f"Error posting reply: {e}")
+        return None
 
 async def analyze_and_reply(tweet_id: str):
     """
     Analyze a tweet and post a reply.
     """
     try:
-        analysis_results = await analyze_thread(tweet_id)
-        await post_reply(tweet_id, analysis_results)
+        api = get_api_client()
+        if not api:
+            raise HTTPException(status_code=503, detail="API client not available")
+
+        analysis_results = await analyze_thread(api, tweet_id)
+        await post_reply(api, tweet_id, analysis_results["original_text"])
     except Exception as e:
         logger.error(f"Error in analyze_and_reply: {e}")
 
@@ -335,116 +266,139 @@ async def home(request: Request):
     """
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.post("/analyze", response_class=HTMLResponse)
-async def analyze(
-    request: Request,
-    tweet_id: str = Form(...),
-    db: Session = Depends(get_db)
-):
+@app.get("/login", response_class=HTMLResponse)
+async def login(request: Request):
     """
-    Analyze a thread and store results.
+    Render login page.
     """
-    try:
-        logger.info(f"Starting analysis for tweet_id: {tweet_id}")
-        
-        # Validate tweet_id format
-        if not tweet_id.isdigit():
-            logger.error(f"Invalid tweet ID format: {tweet_id}")
-            raise HTTPException(status_code=400, detail="Invalid tweet ID format. Please provide a valid numeric tweet ID.")
-        
-        api = get_api_client()
-        if not api:
-            logger.error("API client not available")
-            raise HTTPException(status_code=503, detail="API client not available")
+    return templates.TemplateResponse("login.html", {"request": request})
 
-        # Analyze thread
-        logger.info("Analyzing thread...")
-        try:
-            analysis_results = await analyze_thread(tweet_id)
-            logger.info("Thread analysis complete")
-        except tweepy_errors.NotFound as e:
-            logger.error(f"Tweet not found: {tweet_id}")
-            raise HTTPException(
-                status_code=404, 
-                detail="Tweet not found. Please verify the tweet ID and ensure the tweet still exists."
-            )
-        except tweepy_errors.Forbidden as e:
-            logger.error(f"Access to tweet forbidden: {tweet_id}")
-            raise HTTPException(
-                status_code=403, 
-                detail="Cannot access this tweet. It may be from a private account or have restricted visibility."
-            )
-        except tweepy_errors.TooManyRequests as e:
-            logger.error("Rate limit exceeded")
-            raise HTTPException(
-                status_code=429, 
-                detail="Rate limit exceeded. Please wait a few minutes and try again."
-            )
-        except tweepy_errors.TweepyException as e:
-            logger.error(f"Tweepy error: {str(e)}")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Error accessing tweet: {str(e)}"
-            )
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    """
+    Render dashboard page.
+    """
+    # Mock data for initial implementation
+    stats = {
+        "total_analyses": 0,
+        "follower_growth": 0,
+        "engagement_rate": 0,
+        "avg_bot_percentage": 0
+    }
+    recent_analyses = []
+    grok_insights = []
+    sentiment_dates = []
+    sentiment_positive = []
+    sentiment_negative = []
+    engagement_dates = []
+    engagement_rates = []
+    
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "stats": stats,
+        "recent_analyses": recent_analyses,
+        "grok_insights": grok_insights,
+        "sentiment_dates": sentiment_dates,
+        "sentiment_positive": sentiment_positive,
+        "sentiment_negative": sentiment_negative,
+        "engagement_dates": engagement_dates,
+        "engagement_rates": engagement_rates
+    })
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings(request: Request):
+    """
+    Render settings page.
+    """
+    # Mock data for initial implementation
+    connected_accounts = []
+    grok_api_key = os.getenv("XAI_API_KEY", "")
+    
+    return templates.TemplateResponse("settings.html", {
+        "request": request,
+        "connected_accounts": connected_accounts,
+        "grok_api_key": grok_api_key
+    })
+
+@app.post("/analyze")
+async def analyze(tweet_id: str, request: Request):
+    try:
+        logging.info(f"Starting analysis for tweet {tweet_id}")
         
-        # Post reply
-        logger.info("Posting reply...")
-        response_text = await post_reply(tweet_id, analysis_results)
-        logger.info("Reply posted successfully" if response_text else "Failed to post reply")
+        # Initialize clients
+        api_client = get_api_client()
+        grok_client = GrokAI()
+        
+        if not api_client:
+            raise HTTPException(status_code=401, detail="API client not available")
+            
+        # Analyze thread
+        thread_analysis = await analyze_thread(api_client, tweet_id)
+        logging.info("Thread analysis completed")
+        
+        # Get Grok insights
+        grok_insights = await grok_client.analyze_thread(
+            thread_analysis["original_text"],
+            thread_analysis["replies"]
+        )
+        logging.info("Grok analysis completed")
+        
+        # Generate enhanced response
+        enhanced_response = await grok_client.enhance_response(
+            thread_analysis["sentiment_stats"],
+            thread_analysis.get("tone", "neutral")
+        )
+        logging.info("Response enhancement completed")
         
         # Store analysis in database
-        logger.info("Storing analysis in database...")
-        try:
-            db_analysis = Analysis(
-                tweet_id=tweet_id,
-                original_text=analysis_results["original_text"],
-                date=datetime.now(),
-                total_replies=analysis_results["total_replies"],
-                with_pct=analysis_results["sentiment_stats"]["percentages"]["with"],
-                against_pct=analysis_results["sentiment_stats"]["percentages"]["against"],
-                neutral_pct=analysis_results["sentiment_stats"]["percentages"]["neutral"],
-                bot_pct=analysis_results["bot_percentage"],
-                notable_quotes=json.dumps(analysis_results["sentiment_stats"]["notable_quotes"]),
-                response_text=response_text,
-                engagement_metrics=json.dumps({"keywords": analysis_results["sentiment_stats"]["keywords"]})
-            )
-            db.add(db_analysis)
-            db.commit()
-            logger.info("Analysis stored in database")
-        except Exception as e:
-            logger.error(f"Database error: {str(e)}")
-            db.rollback()
-            raise
+        analysis = Analysis(
+            tweet_id=tweet_id,
+            original_text=thread_analysis["original_text"],
+            date=datetime.now(),
+            sentiment_positive=thread_analysis["sentiment_stats"]["percentages"]["with"],
+            sentiment_negative=thread_analysis["sentiment_stats"]["percentages"]["against"],
+            sentiment_neutral=thread_analysis["sentiment_stats"]["percentages"]["neutral"],
+            engagement_likes=thread_analysis["sentiment_stats"]["engagement"]["likes"],
+            engagement_replies=thread_analysis["sentiment_stats"]["engagement"]["replies"],
+            engagement_retweets=thread_analysis["sentiment_stats"]["engagement"]["retweets"],
+            grok_insights=json.dumps(grok_insights),
+            enhanced_response=enhanced_response
+        )
+        
+        db = get_db()
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+        db.close()
+        logging.info("Analysis stored in database")
+        
+        # Post reply if requested
+        if request.query_params.get("post_reply", "false").lower() == "true":
+            await post_reply(api_client, tweet_id, enhanced_response)
+            logging.info("Reply posted successfully")
         
         return templates.TemplateResponse(
             "results.html",
             {
                 "request": request,
-                "analysis": analysis_results,
-                "response_text": response_text
+                "analysis": analysis,
+                "grok_insights": grok_insights,
+                "enhanced_response": enhanced_response
             }
         )
         
-    except HTTPException as e:
-        logger.error(f"HTTP error: {e.detail}")
-        return templates.TemplateResponse(
-            "error.html",
-            {
-                "request": request,
-                "error_code": e.status_code,
-                "error_message": e.detail
-            }
-        )
+    except tweepy_errors.NotFound:
+        logging.error(f"Tweet {tweet_id} not found")
+        raise HTTPException(status_code=404, detail="Tweet not found")
+    except tweepy_errors.Forbidden:
+        logging.error("Access to tweet forbidden")
+        raise HTTPException(status_code=403, detail="Access forbidden")
+    except tweepy_errors.TooManyRequests:
+        logging.error("Rate limit exceeded")
+        raise HTTPException(status_code=429, detail="Rate limit exceeded")
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
-        return templates.TemplateResponse(
-            "error.html",
-            {
-                "request": request,
-                "error_code": 500,
-                "error_message": f"An unexpected error occurred: {str(e)}"
-            }
-        )
+        logging.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 @app.get("/past_analyses", response_class=HTMLResponse)
 async def past_analyses(request: Request, db: Session = Depends(get_db)):
@@ -473,10 +427,10 @@ async def get_stats(db: Session = Depends(get_db)):
                 "average_bot_percentage": 0
             })
         
-        avg_with = sum(a.with_pct for a in analyses) / total_analyses
-        avg_against = sum(a.against_pct for a in analyses) / total_analyses
-        avg_neutral = sum(a.neutral_pct for a in analyses) / total_analyses
-        avg_bot = sum(a.bot_pct for a in analyses) / total_analyses
+        avg_with = sum(a.sentiment_positive for a in analyses) / total_analyses
+        avg_against = sum(a.sentiment_negative for a in analyses) / total_analyses
+        avg_neutral = sum(a.sentiment_neutral for a in analyses) / total_analyses
+        avg_bot = sum(a.bot_percentage for a in analyses) / total_analyses
         
         return JSONResponse({
             "total_analyses": total_analyses,
