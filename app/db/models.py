@@ -8,12 +8,13 @@ import os
 settings = get_settings()
 Base = declarative_base()
 
-# For Vercel serverless, use /tmp directory for SQLite
+# Set database path based on environment
 if os.environ.get('VERCEL_ENV'):
     db_path = "/tmp/analyses.db"
-    DATABASE_URL = f"sqlite:///{db_path}"
 else:
-    DATABASE_URL = settings.DATABASE_URL
+    db_path = "analyses.db"  # Local development path
+
+DATABASE_URL = f"sqlite:///{db_path}"
 
 class Analysis(Base):
     __tablename__ = "analyses"
@@ -42,9 +43,8 @@ if os.environ.get('VERCEL_ENV'):
     # In Vercel, always create tables as they're in /tmp
     Base.metadata.create_all(bind=engine)
 else:
-    # In development, only create if they don't exist
-    if not os.path.exists(db_path):
-        Base.metadata.create_all(bind=engine)
+    # In development, create tables if they don't exist
+    Base.metadata.create_all(bind=engine)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

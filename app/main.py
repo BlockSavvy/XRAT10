@@ -9,11 +9,16 @@ import json
 from datetime import datetime
 from typing import Dict, List
 import os
+import logging
 
 from app.core.config import get_settings
 from app.db.models import get_db, Analysis
 from app.services.sentiment import SentimentAnalyzer
 from app.services.bot_detection import BotDetector
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(title=get_settings().APP_NAME)
@@ -304,32 +309,46 @@ async def analyze(
     Analyze a thread and store results.
     """
     try:
+        logger.info(f"Starting analysis for tweet_id: {tweet_id}")
+        
         api = get_api_client()
         if not api:
+            logger.error("API client not available")
             raise HTTPException(status_code=503, detail="API client not available")
 
         # Analyze thread
+        logger.info("Analyzing thread...")
         analysis_results = await analyze_thread(tweet_id)
+        logger.info("Thread analysis complete")
         
         # Post reply
+        logger.info("Posting reply...")
         response_text = await post_reply(tweet_id, analysis_results)
+        logger.info("Reply posted successfully" if response_text else "Failed to post reply")
         
         # Store analysis in database
-        db_analysis = Analysis(
-            tweet_id=tweet_id,
-            original_text=analysis_results["original_text"],
-            date=datetime.now(),
-            total_replies=analysis_results["total_replies"],
-            with_pct=analysis_results["sentiment_stats"]["percentages"]["with"],
-            against_pct=analysis_results["sentiment_stats"]["percentages"]["against"],
-            neutral_pct=analysis_results["sentiment_stats"]["percentages"]["neutral"],
-            bot_pct=analysis_results["bot_percentage"],
-            notable_quotes=json.dumps(analysis_results["sentiment_stats"]["notable_quotes"]),
-            response_text=response_text,
-            engagement_metrics=json.dumps({"keywords": analysis_results["sentiment_stats"]["keywords"]})
-        )
-        db.add(db_analysis)
-        db.commit()
+        logger.info("Storing analysis in database...")
+        try:
+            db_analysis = Analysis(
+                tweet_id=tweet_id,
+                original_text=analysis_results["original_text"],
+                date=datetime.now(),
+                total_replies=analysis_results["total_replies"],
+                with_pct=analysis_results["sentiment_stats"]["percentages"]["with"],
+                against_pct=analysis_results["sentiment_stats"]["percentages"]["against"],
+                neutral_pct=analysis_results["sentiment_stats"]["percentages"]["neutral"],
+                bot_pct=analysis_results["bot_percentage"],
+                notable_quotes=json.dumps(analysis_results["sentiment_stats"]["notable_quotes"]),
+                response_text=response_text,
+                engagement_metrics=json.dumps({"keywords": analysis_results["sentiment_stats"]["keywords"]})
+            )
+            db.add(db_analysis)
+            db.commit()
+            logger.info("Analysis stored in database")
+        except Exception as e:
+            logger.error(f"Database error: {str(e)}")
+            db.rollback()
+            raise
         
         return templates.TemplateResponse(
             "results.html",
@@ -341,12 +360,23 @@ async def analyze(
         )
         
     except HTTPException as e:
+        logger.error(f"HTTP error: {e.detail}")
         return templates.TemplateResponse(
             "error.html",
             {
                 "request": request,
                 "error_code": e.status_code,
                 "error_message": e.detail
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "error_code": 500,
+                "error_message": f"An unexpected error occurred: {str(e)}"
             }
         )
 
