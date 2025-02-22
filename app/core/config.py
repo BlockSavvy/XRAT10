@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     X_BEARER_TOKEN: str
     
     # OAuth 2.0 Settings
-    CLIENT_ID: str = "Yk15X05tVXJDYjREX1VtTDZFdzk6MTpjaQ"
-    CLIENT_SECRET: str = "1PahUUHERTJCEob59uDlL_DPoXwF64b5kHDynGOPFm3s14S1aG"
+    CLIENT_ID: str
+    CLIENT_SECRET: str
     
     # Base URLs
     BASE_URL: str = "http://127.0.0.1:8000" if DEBUG else "https://xrat10.vercel.app"
