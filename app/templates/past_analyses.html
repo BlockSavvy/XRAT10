@@ -96,15 +96,15 @@
                         <td>
                             <div class="sentiment-bar">
                                 <div class="sentiment-segment sentiment-positive" 
-                                     style="width: {{ analysis.with_pct }}%"
+                                     data-width="{{ analysis.with_pct }}"
                                      title="Positive: {{ '%.1f'|format(analysis.with_pct) }}%">
                                 </div>
                                 <div class="sentiment-segment sentiment-negative"
-                                     style="width: {{ analysis.against_pct }}%"
+                                     data-width="{{ analysis.against_pct }}"
                                      title="Negative: {{ '%.1f'|format(analysis.against_pct) }}%">
                                 </div>
                                 <div class="sentiment-segment sentiment-neutral"
-                                     style="width: {{ analysis.neutral_pct }}%"
+                                     data-width="{{ analysis.neutral_pct }}"
                                      title="Neutral: {{ '%.1f'|format(analysis.neutral_pct) }}%">
                                 </div>
                             </div>
@@ -154,23 +154,30 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize sentiment bars
+        document.querySelectorAll('.sentiment-segment').forEach(function(segment) {
+            const width = segment.getAttribute('data-width');
+            segment.style.width = width + '%';
+        });
+
         // Initialize DataTable
         initializeDataTable('#analysesTable');
 
         // Export to CSV
         $('#exportCSV').click(function() {
             const data = [];
-            {% for analysis in analyses %}
-            data.push({
-                'Date': '{{ analysis.date.strftime("%Y-%m-%d %H:%M:%S") }}',
-                'Tweet': '{{ analysis.original_text|replace("'", "\\'") }}',
-                'Positive %': '{{ "%.1f"|format(analysis.with_pct) }}',
-                'Negative %': '{{ "%.1f"|format(analysis.against_pct) }}',
-                'Neutral %': '{{ "%.1f"|format(analysis.neutral_pct) }}',
-                'Replies': '{{ analysis.total_replies }}',
-                'Bot %': '{{ "%.1f"|format(analysis.bot_pct) }}'
+            const analyses = JSON.parse('{{ analyses | tojson | safe }}');
+            analyses.forEach(function(analysis) {
+                data.push({
+                    'Date': analysis.date,
+                    'Tweet': analysis.original_text.replace(/'/g, "\\'"),
+                    'Positive %': analysis.with_pct.toFixed(1),
+                    'Negative %': analysis.against_pct.toFixed(1),
+                    'Neutral %': analysis.neutral_pct.toFixed(1),
+                    'Replies': analysis.total_replies,
+                    'Bot %': analysis.bot_pct.toFixed(1)
+                });
             });
-            {% endfor %}
             exportToCSV(data, 'thread_analyses.csv');
         });
 
