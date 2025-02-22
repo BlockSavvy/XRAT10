@@ -37,6 +37,7 @@ env/
 *.sqlite3
 *.log
 .DS_Store
+.vercel
 
 # Testing
 .coverage

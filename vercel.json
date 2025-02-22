@@ -1,0 +1,21 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "app/main.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "app/main.py"
+        }
+    ],
+    "env": {
+        "APP_NAME": "X Thread Analyzer",
+        "DEBUG": "False",
+        "HOST": "0.0.0.0",
+        "PORT": "8000"
+    }
+} 
