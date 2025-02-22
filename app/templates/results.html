@@ -177,17 +177,19 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize sentiment chart
         const sentimentData = {
-            positive: {{ analysis.sentiment_stats.percentages.with }},
-            negative: {{ analysis.sentiment_stats.percentages.against }},
-            neutral: {{ analysis.sentiment_stats.percentages.neutral }}
+            positive: parseFloat("{{ analysis.sentiment_stats.percentages.with }}"),
+            negative: parseFloat("{{ analysis.sentiment_stats.percentages.against }}"),
+            neutral: parseFloat("{{ analysis.sentiment_stats.percentages.neutral }}")
         };
+        
         initializeSentimentChart(
             document.getElementById('sentimentChart').getContext('2d'),
             sentimentData
         );
 
         // Initialize timeline chart
-        const timelineData = {{ analysis.sentiment_stats.sentiment_progression | tojson }};
+        const timelineData = JSON.parse('{{ analysis.sentiment_stats.sentiment_progression | tojson | safe }}');
+        
         initializeTimelineChart(
             document.getElementById('timelineChart').getContext('2d'),
             timelineData

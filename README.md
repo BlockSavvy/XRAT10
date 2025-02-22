@@ -21,26 +21,31 @@ An intelligent web application that analyzes X (formerly Twitter) threads for se
 ## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/XRAT10.git
 cd XRAT10
 ```
 
 2. Create and activate a virtual environment:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 3. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 4. Set up environment variables:
+
 ```bash
 cp .env.example .env
 ```
+
 Edit `.env` with your X API credentials and other configuration settings.
 
 ### Environment Variables
@@ -90,6 +95,7 @@ XRAT10/
 ## Usage
 
 1. Start the application:
+
 ```bash
 uvicorn app.main:app --reload
 ```
@@ -108,9 +114,11 @@ uvicorn app.main:app --reload
 ## Deployment
 
 ### Local Development
+
 Follow the installation instructions above.
 
 ### Production (Vercel)
+
 1. Fork/clone this repository
 2. Import to Vercel
 3. Set up environment variables in Vercel project settings
@@ -132,4 +140,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - VADER Sentiment Analysis
 - FastAPI framework
-- X API 
+- X API

@@ -321,7 +321,7 @@ async def settings(request: Request):
     })
 
 @app.post("/analyze")
-async def analyze(tweet_id: str, request: Request):
+async def analyze(request: Request, tweet_id: str = Form(...)):
     try:
         logging.info(f"Starting analysis for tweet {tweet_id}")
         
@@ -339,7 +339,7 @@ async def analyze(tweet_id: str, request: Request):
         # Get Grok insights
         grok_insights = await grok_client.analyze_thread(
             thread_analysis["original_text"],
-            thread_analysis["replies"]
+            thread_analysis.get("replies", [])  # Use get() with default empty list
         )
         logging.info("Grok analysis completed")
         
@@ -358,18 +358,18 @@ async def analyze(tweet_id: str, request: Request):
             sentiment_positive=thread_analysis["sentiment_stats"]["percentages"]["with"],
             sentiment_negative=thread_analysis["sentiment_stats"]["percentages"]["against"],
             sentiment_neutral=thread_analysis["sentiment_stats"]["percentages"]["neutral"],
-            engagement_likes=thread_analysis["sentiment_stats"]["engagement"]["likes"],
-            engagement_replies=thread_analysis["sentiment_stats"]["engagement"]["replies"],
-            engagement_retweets=thread_analysis["sentiment_stats"]["engagement"]["retweets"],
+            engagement_likes=thread_analysis["sentiment_stats"].get("engagement", {}).get("likes", 0),
+            engagement_replies=thread_analysis["sentiment_stats"].get("engagement", {}).get("replies", 0),
+            engagement_retweets=thread_analysis["sentiment_stats"].get("engagement", {}).get("retweets", 0),
             grok_insights=json.dumps(grok_insights),
-            enhanced_response=enhanced_response
+            enhanced_response=enhanced_response,
+            bot_percentage=thread_analysis.get("bot_percentage", 0.0)
         )
         
-        db = get_db()
+        db = next(get_db())  # Get database session
         db.add(analysis)
         db.commit()
         db.refresh(analysis)
-        db.close()
         logging.info("Analysis stored in database")
         
         # Post reply if requested
