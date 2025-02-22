@@ -30,7 +30,7 @@ try:
     oauth1_auth = tweepy.OAuthHandler(
         settings.X_API_KEY, 
         settings.X_API_SECRET,
-        callback='http://127.0.0.1:8000/callback'  # Local callback URL
+        callback=settings.CALLBACK_URL
     )
     oauth1_auth.set_access_token(
         settings.X_ACCESS_TOKEN, 
@@ -45,6 +45,9 @@ try:
         consumer_secret=settings.X_API_SECRET,
         access_token=settings.X_ACCESS_TOKEN,
         access_token_secret=settings.X_ACCESS_TOKEN_SECRET,
+        client_id=settings.CLIENT_ID,
+        client_secret=settings.CLIENT_SECRET,
+        callback=settings.CALLBACK_URL,
         wait_on_rate_limit=True
     )
 except Exception as e:
