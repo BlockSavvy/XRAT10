@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, Form, HTTPException, Depends
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -11,6 +11,7 @@ from typing import Dict, List
 import os
 import logging
 from tweepy import errors as tweepy_errors
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import get_settings
 from app.db.models import get_db, Analysis
@@ -25,6 +26,21 @@ logger = logging.getLogger(__name__)
 # Initialize FastAPI app
 app = FastAPI(title=get_settings().APP_NAME)
 
+# Add session middleware
+settings = get_settings()
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY,
+    max_age=3600  # 1 hour
+)
+
+# Helper function to get current user
+def get_current_user(request: Request):
+    """
+    Get the current user from session.
+    """
+    return request.session.get("user")
+
 # Create event loop for async operations
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
@@ -35,7 +51,6 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 # Initialize services
-settings = get_settings()
 sentiment_analyzer = SentimentAnalyzer()
 bot_detector = BotDetector()
 grok_ai = GrokAI()
@@ -104,34 +119,107 @@ if not os.environ.get('VERCEL_ENV'):
 # OAuth callback route
 @app.get("/callback")
 async def callback(request: Request, oauth_token: str = None, oauth_verifier: str = None):
+    """
+    Handle X OAuth callback.
+    """
     try:
-        # Get the access token and secret
+        if not oauth_token or not oauth_verifier:
+            raise HTTPException(status_code=400, detail="Missing OAuth parameters")
+            
+        # Get stored request token
+        stored_token = request.session.get("oauth_token")
+        stored_token_secret = request.session.get("oauth_token_secret")
+        
+        if not stored_token or not stored_token_secret:
+            raise HTTPException(status_code=400, detail="No OAuth token found in session")
+            
+        if stored_token != oauth_token:
+            raise HTTPException(status_code=400, detail="OAuth token mismatch")
+        
+        # Initialize OAuth handler
         oauth1_auth = tweepy.OAuthHandler(
-            settings.X_API_KEY, 
+            settings.X_API_KEY,
             settings.X_API_SECRET,
             callback=settings.CALLBACK_URL
         )
-        oauth1_auth.set_access_token(
-            settings.X_ACCESS_TOKEN, 
-            settings.X_ACCESS_TOKEN_SECRET
-        )
-        api = tweepy.API(oauth1_auth, wait_on_rate_limit=True)
         
-        # Store the tokens (in a real app, save these securely)
-        access_token = oauth1_auth.access_token
-        access_token_secret = oauth1_auth.access_token_secret
+        # Set the request token
+        oauth1_auth.request_token = {
+            "oauth_token": stored_token,
+            "oauth_token_secret": stored_token_secret
+        }
         
-        return templates.TemplateResponse(
-            "auth_success.html",
-            {"request": request}
-        )
+        try:
+            # Get the access token
+            access_token = oauth1_auth.get_access_token(oauth_verifier)
+            
+            # Store the tokens (in a real app, save these securely)
+            request.session["access_token"] = access_token[0]
+            request.session["access_token_secret"] = access_token[1]
+            
+            # Initialize API client with the new tokens
+            api = tweepy.API(oauth1_auth, wait_on_rate_limit=True)
+            user = api.verify_credentials()
+            
+            # Store user info in session
+            request.session["user"] = {
+                "id": user.id,
+                "username": user.screen_name,
+                "name": user.name,
+                "profile_image_url": user.profile_image_url_https
+            }
+            
+            return templates.TemplateResponse(
+                "auth_success.html",
+                {"request": request}
+            )
+            
+        except tweepy.TweepError as e:
+            raise HTTPException(status_code=400, detail=f"Failed to get access token: {str(e)}")
+            
     except Exception as e:
+        logger.error(f"Authentication error: {e}")
         return templates.TemplateResponse(
             "error.html",
             {
                 "request": request,
                 "error_code": 400,
                 "error_message": f"Authentication failed: {str(e)}"
+            }
+        )
+
+# OAuth routes
+@app.get("/auth/twitter")
+async def twitter_auth(request: Request):
+    """
+    Initialize X OAuth authentication.
+    """
+    try:
+        # Initialize OAuth handler
+        oauth1_auth = tweepy.OAuthHandler(
+            settings.X_API_KEY,
+            settings.X_API_SECRET,
+            callback=settings.CALLBACK_URL
+        )
+        
+        # Get the authorization URL
+        auth_url = oauth1_auth.get_authorization_url()
+        
+        # Store the request token in session (in a real app, use secure session management)
+        request.session["oauth_token"] = oauth1_auth.request_token["oauth_token"]
+        request.session["oauth_token_secret"] = oauth1_auth.request_token["oauth_token_secret"]
+        
+        # Redirect to X for authentication
+        return RedirectResponse(auth_url)
+        
+    except Exception as e:
+        logger.error(f"Error initializing X authentication: {e}")
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "error_code": 500,
+                "error_message": "Failed to initialize X authentication. Please try again."
             }
         )
 
@@ -259,19 +347,23 @@ async def analyze_and_reply(tweet_id: str):
     except Exception as e:
         logger.error(f"Error in analyze_and_reply: {e}")
 
+# Webapp routes
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    """
-    Render home page.
-    """
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "current_user": get_current_user(request)
+    })
 
 @app.get("/login", response_class=HTMLResponse)
 async def login(request: Request):
     """
     Render login page.
     """
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "current_user": get_current_user(request)
+    })
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
@@ -295,6 +387,7 @@ async def dashboard(request: Request):
     
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
+        "current_user": get_current_user(request),
         "stats": stats,
         "recent_analyses": recent_analyses,
         "grok_insights": grok_insights,
@@ -316,6 +409,7 @@ async def settings(request: Request):
     
     return templates.TemplateResponse("settings.html", {
         "request": request,
+        "current_user": get_current_user(request),
         "connected_accounts": connected_accounts,
         "grok_api_key": grok_api_key
     })
@@ -381,6 +475,7 @@ async def analyze(request: Request, tweet_id: str = Form(...)):
             "results.html",
             {
                 "request": request,
+                "current_user": get_current_user(request),
                 "analysis": analysis,
                 "grok_insights": grok_insights,
                 "enhanced_response": enhanced_response
