@@ -11,7 +11,7 @@
                 <i class="bi bi-speedometer2 me-2"></i>
                 Dashboard
             </h2>
-            <p class="lead">Welcome back, @{{ current_user.username }}!</p>
+            <p class="lead">Welcome back, @{{ current_user.username if current_user else 'Guest' }}!</p>
         </div>
     </div>
 
@@ -109,12 +109,10 @@
                                         {{ analysis.original_text }}
                                     </td>
                                     <td>
-                                        <div class="progress" style="height: 20px;">
-                                            <div class="progress-bar bg-success" 
-                                                 role="progressbar" 
-                                                 style="width: {{ analysis.with_pct }}%">
-                                                {{ analysis.with_pct }}%
-                                            </div>
+                                        <div class="sentiment-bar">
+                                            <div class="sentiment-segment sentiment-positive" data-width="{{ analysis.with_pct }}"></div>
+                                            <div class="sentiment-segment sentiment-negative" data-width="{{ analysis.against_pct }}"></div>
+                                            <div class="sentiment-segment sentiment-neutral" data-width="{{ analysis.neutral_pct }}"></div>
                                         </div>
                                     </td>
                                     <td>{{ analysis.engagement_rate }}%</td>
@@ -158,56 +156,109 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Sentiment Trends Chart
-    const sentimentCtx = document.getElementById('sentimentTrend').getContext('2d');
-    new Chart(sentimentCtx, {
-        type: 'line',
-        data: {
-            labels: {{ sentiment_dates | tojson | safe }},
-            datasets: [{
-                label: 'Positive',
-                data: {{ sentiment_positive | tojson | safe }},
-                borderColor: '#28a745',
-                fill: false
-            }, {
-                label: 'Negative',
-                data: {{ sentiment_negative | tojson | safe }},
-                borderColor: '#dc3545',
-                fill: false
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100
-                }
-            }
-        }
+    // Initialize sentiment bars
+    document.querySelectorAll('.sentiment-segment').forEach(function(segment) {
+        const width = segment.getAttribute('data-width');
+        segment.style.width = width + '%';
     });
 
-    // Engagement Chart
-    const engagementCtx = document.getElementById('engagementChart').getContext('2d');
-    new Chart(engagementCtx, {
-        type: 'bar',
-        data: {
-            labels: {{ engagement_dates | tojson | safe }},
-            datasets: [{
-                label: 'Engagement Rate',
-                data: {{ engagement_rates | tojson | safe }},
-                backgroundColor: '#1DA1F2'
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
+    // Get chart data from server-rendered JSON
+    const sentimentDates = JSON.parse('{{ sentiment_dates | tojson | safe }}');
+    const sentimentPositive = JSON.parse('{{ sentiment_positive | tojson | safe }}');
+    const sentimentNegative = JSON.parse('{{ sentiment_negative | tojson | safe }}');
+    const engagementDates = JSON.parse('{{ engagement_dates | tojson | safe }}');
+    const engagementRates = JSON.parse('{{ engagement_rates | tojson | safe }}');
+
+    // Initialize Sentiment Trends Chart
+    const sentimentCtx = document.getElementById('sentimentTrend');
+    if (sentimentCtx) {
+        new Chart(sentimentCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: sentimentDates,
+                datasets: [
+                    {
+                        label: 'Positive',
+                        data: sentimentPositive,
+                        borderColor: '#28a745',
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Negative',
+                        data: sentimentNegative,
+                        borderColor: '#dc3545',
+                        fill: false,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Percentage'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
                 }
             }
-        }
-    });
+        });
+    }
+
+    // Initialize Engagement Chart
+    const engagementCtx = document.getElementById('engagementChart');
+    if (engagementCtx) {
+        new Chart(engagementCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: engagementDates,
+                datasets: [{
+                    label: 'Engagement Rate',
+                    data: engagementRates,
+                    backgroundColor: '#1DA1F2',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Engagement Rate (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %} 

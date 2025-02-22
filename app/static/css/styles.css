@@ -32,11 +32,13 @@
     border-radius: 10px;
     overflow: hidden;
     background-color: #e9ecef;
+    display: flex;
+    width: 100%;
 }
 
 .sentiment-segment {
     height: 100%;
-    float: left;
+    transition: width 0.3s ease;
 }
 
 .sentiment-segment.sentiment-positive { background-color: #28a745; }
