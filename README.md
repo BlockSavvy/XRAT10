@@ -43,6 +43,24 @@ cp .env.example .env
 ```
 Edit `.env` with your X API credentials and other configuration settings.
 
+### Environment Variables
+
+The following environment variables are required:
+
+- `X_API_KEY`: Your X API Key
+- `X_API_SECRET`: Your X API Secret
+- `X_ACCESS_TOKEN`: Your X Access Token
+- `X_ACCESS_TOKEN_SECRET`: Your X Access Token Secret
+- `X_BEARER_TOKEN`: Your X Bearer Token
+- `CLIENT_ID`: Your OAuth 2.0 Client ID
+- `CLIENT_SECRET`: Your OAuth 2.0 Client Secret
+- `SECRET_KEY`: A secure secret key for the application
+- `DEBUG`: Set to False in production
+- `DATABASE_URL`: Your database URL (default: SQLite)
+
+For development, copy `.env.example` to `.env` and fill in your values.
+For production deployment (e.g., Vercel), set these in your deployment platform's environment variables.
+
 ## Project Structure
 
 ```
@@ -86,6 +104,17 @@ uvicorn app.main:app --reload
 - `POST /analyze`: Analyze a specific thread
 - `GET /past_analyses`: View historical analyses
 - `GET /api/v1/stats`: Get analysis statistics (API)
+
+## Deployment
+
+### Local Development
+Follow the installation instructions above.
+
+### Production (Vercel)
+1. Fork/clone this repository
+2. Import to Vercel
+3. Set up environment variables in Vercel project settings
+4. Deploy!
 
 ## Contributing
 
