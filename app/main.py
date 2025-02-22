@@ -18,9 +18,8 @@ from app.services.bot_detection import BotDetector
 # Initialize FastAPI app
 app = FastAPI(title=get_settings().APP_NAME)
 
-# Only mount static files in development
-if not os.environ.get('VERCEL_ENV'):
-    app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# Mount static files
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 templates = Jinja2Templates(directory="app/templates")
 

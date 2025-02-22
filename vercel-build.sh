@@ -3,9 +3,29 @@
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Create necessary directories if they don't exist
-mkdir -p app/static/css
-mkdir -p app/static/js
+# Create necessary directories
+mkdir -p .vercel/output/static
+mkdir -p .vercel/output/functions/app
 
-# Copy static files if needed
-cp -r app/static/* ./static/ 2>/dev/null || true 
+# Copy static files
+cp -r app/static/* .vercel/output/static/
+
+# Copy Python files
+cp -r app/* .vercel/output/functions/app/
+
+# Create Vercel output configuration
+cat > .vercel/output/config.json << EOF
+{
+    "version": 3,
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "/static/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/functions/app/main"
+        }
+    ]
+}
+EOF 
