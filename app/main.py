@@ -114,7 +114,24 @@ def get_client():
 # Update the stream initialization to be lazy
 def get_stream():
     if not hasattr(get_stream, 'stream'):
-        get_stream.stream = TweetStream(settings.X_BEARER_TOKEN)
+        # Get fresh settings
+        settings = get_settings()
+        # Initialize stream with proper rules
+        stream = TweetStream(settings.X_BEARER_TOKEN)
+        # Add rule to track mentions
+        try:
+            # First, delete any existing rules
+            rules = stream.get_rules()
+            if rules and rules.data:
+                rule_ids = [rule.id for rule in rules.data]
+                stream.delete_rules(rule_ids)
+            
+            # Add new rule to track mentions
+            stream.add_rules(tweepy.StreamRule(f"@{settings.X_ACCESS_TOKEN.split('-')[0]}"))
+        except Exception as e:
+            logger.error(f"Error setting up stream rules: {e}")
+        
+        get_stream.stream = stream
     return get_stream.stream
 
 # Only start stream in development
@@ -123,14 +140,15 @@ if not os.environ.get('VERCEL_ENV'):
         while True:
             try:
                 stream = get_stream()
-                stream.filter(tweet_fields=["referenced_tweets"])
+                stream.filter(tweet_fields=["referenced_tweets", "author_id", "text"])
             except Exception as e:
-                print(f"Stream error: {e}")
+                logger.error(f"Stream error: {e}")
                 continue
     
     # Start stream in background
     import threading
     threading.Thread(target=start_stream, daemon=True).start()
+    logger.info("Stream listener started successfully")
 
 # OAuth routes
 @app.get("/auth/twitter")
@@ -406,8 +424,47 @@ async def analyze_and_reply(tweet_id: str):
         if not api:
             raise HTTPException(status_code=503, detail="API client not available")
 
-        analysis_results = await analyze_thread(api, tweet_id)
-        await post_reply(api, tweet_id, analysis_results["original_text"])
+        # Get thread analysis
+        thread_analysis = await analyze_thread(api, tweet_id)
+        
+        # Get Grok insights
+        grok_client = GrokAI()
+        grok_insights = await grok_client.analyze_thread(
+            thread_analysis["original_text"],
+            thread_analysis.get("replies", [])
+        )
+        
+        # Generate enhanced response
+        enhanced_response = await grok_client.enhance_response(
+            thread_analysis["sentiment_stats"],
+            thread_analysis.get("tone", "neutral")
+        )
+        
+        # Store in database
+        analysis = Analysis(
+            tweet_id=tweet_id,
+            original_text=thread_analysis["original_text"],
+            date=datetime.now(),
+            sentiment_positive=thread_analysis["sentiment_stats"]["percentages"]["with"],
+            sentiment_negative=thread_analysis["sentiment_stats"]["percentages"]["against"],
+            sentiment_neutral=thread_analysis["sentiment_stats"]["percentages"]["neutral"],
+            engagement_likes=thread_analysis["sentiment_stats"].get("engagement", {}).get("likes", 0),
+            engagement_replies=thread_analysis["sentiment_stats"].get("engagement", {}).get("replies", 0),
+            engagement_retweets=thread_analysis["sentiment_stats"].get("engagement", {}).get("retweets", 0),
+            grok_insights=json.dumps(grok_insights),
+            enhanced_response=enhanced_response,
+            bot_percentage=thread_analysis.get("bot_percentage", 0.0)
+        )
+        
+        db = next(get_db())
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+        
+        # Post the enhanced response
+        await post_reply(api, tweet_id, enhanced_response)
+        logger.info(f"Successfully analyzed and replied to tweet {tweet_id}")
+        
     except Exception as e:
         logger.error(f"Error in analyze_and_reply: {e}")
 

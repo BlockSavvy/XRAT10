@@ -169,28 +169,20 @@
                             <h5 class="mb-0">API Configuration</h5>
                         </div>
                         <div class="card-body">
-                            <form>
-                                <div class="mb-3">
-                                    <label class="form-label">Grok AI API Key</label>
-                                    <div class="input-group">
-                                        <input type="password" class="form-control" value="{{ grok_api_key }}">
-                                        <button class="btn btn-outline-secondary" type="button">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                    </div>
-                                    <small class="text-muted">Your Grok AI API key for enhanced analysis</small>
-                                </div>
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                Grok AI API is configured via environment variables
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Webhook URL</label>
+                                <input type="url" class="form-control" placeholder="https://your-webhook-url.com">
+                                <small class="text-muted">Receive real-time updates via webhook</small>
+                            </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Webhook URL</label>
-                                    <input type="url" class="form-control" placeholder="https://your-webhook-url.com">
-                                    <small class="text-muted">Receive real-time updates via webhook</small>
-                                </div>
-
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save me-2"></i>Save API Settings
-                                </button>
-                            </form>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Save API Settings
+                            </button>
                         </div>
                     </div>
                 </div>
