@@ -1,0 +1,153 @@
+"TimeUTC","timestampInMs","requestPath","requestMethod","responseStatusCode","requestId","requestUserAgent","level","environment","branch","vercelCache","type","function","host","deploymentDomain","deploymentId","durationMs","region","maxMemoryUsed","memorySize","message","projectId"
+"2025-02-22 06:16:43",1740205003864,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/favicon.png","GET",-1,"9crnj-1740205003816-de573d05b446","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:16:43] ""GET /favicon.png HTTP/1.1"" 404 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:43",1740205003850,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/favicon.png","GET",404,"9crnj-1740205003816-de573d05b446","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36","warning","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",3,"iad1",141,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:43",1740205003779,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/favicon.ico","GET",-1,"9crnj-1740205003729-efb839dfda94","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:16:43] ""GET /favicon.ico HTTP/1.1"" 404 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:43",1740205003764,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/favicon.ico","GET",404,"9crnj-1740205003729-efb839dfda94","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36","warning","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",3,"iad1",141,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:43",1740205003440,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",-1,"9crnj-1740205003275-9d96febd3bf4","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:16:43] ""GET / HTTP/1.1"" 200 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:43",1740205003425,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",200,"9crnj-1740205003275-9d96febd3bf4","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",3,"iad1",141,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:34",1740204994923,"xrat10.vercel.app/auth/twitter","GET",-1,"qnrx7-1740204994891-65ba894c203c","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:16:34] ""GET /auth/twitter HTTP/1.1"" 404 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:34",1740204994909,"xrat10.vercel.app/auth/twitter","GET",404,"qnrx7-1740204994891-65ba894c203c","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","warning","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",3,"iad1",141,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:28",1740204988427,"xrat10.vercel.app/login","GET",-1,"728fz-1740204988391-8df349db3c39","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:16:28] ""GET /login HTTP/1.1"" 200 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:28",1740204988407,"xrat10.vercel.app/login","GET",200,"728fz-1740204988391-8df349db3c39","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",5,"iad1",141,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:17",1740204977143,"xrat10.vercel.app/settings","GET",-1,"chgq9-1740204977112-2718127c4795","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:16:17] ""GET /settings HTTP/1.1"" 200 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:17",1740204977124,"xrat10.vercel.app/settings","GET",200,"chgq9-1740204977112-2718127c4795","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",8,"iad1",141,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:15",1740204975672,"xrat10.vercel.app/past_analyses","GET",-1,"b8ffb-1740204975563-8a1f8416a010","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:16:15] ""GET /past_analyses HTTP/1.1"" 200 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:15",1740204975613,"xrat10.vercel.app/past_analyses","GET",200,"b8ffb-1740204975563-8a1f8416a010","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",49,"iad1",141,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:07",1740204967912,"xrat10.vercel.app/dashboard","GET",-1,"dbxmt-1740204967872-c00ce27a31a0","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:16:07] ""GET /dashboard HTTP/1.1"" 200 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:16:07",1740204967889,"xrat10.vercel.app/dashboard","GET",200,"dbxmt-1740204967872-c00ce27a31a0","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",12,"iad1",136,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:49",1740204949741,"xrat10.vercel.app/analyze","POST",-1,"fjhgh-1740204949652-cc0c849d2223","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:15:49] ""POST /analyze HTTP/1.1"" 422 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:49",1740204949726,"xrat10.vercel.app/analyze","POST",422,"fjhgh-1740204949652-cc0c849d2223","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","warning","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",3,"iad1",136,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:38",1740204938104,"xrat10.vercel.app/analyze","POST",-1,"5vlq4-1740204938052-4afb1426302f","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:15:38] ""POST /analyze HTTP/1.1"" 422 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:38",1740204938087,"xrat10.vercel.app/analyze","POST",422,"5vlq4-1740204938052-4afb1426302f","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","warning","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",4,"iad1",136,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:18",1740204918366,"xrat10.vercel.app/analyze","POST",-1,"j9zwx-1740204918298-122387777d61","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:15:18] ""POST /analyze HTTP/1.1"" 422 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:18",1740204918352,"xrat10.vercel.app/analyze","POST",422,"j9zwx-1740204918298-122387777d61","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","warning","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",3,"iad1",136,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:14",1740204914305,"xrat10.vercel.app/","GET",-1,"p6nwc-1740204914161-e79302e0f2e3","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:15:14] ""GET / HTTP/1.1"" 200 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:14",1740204914292,"xrat10.vercel.app/","GET",200,"p6nwc-1740204914161-e79302e0f2e3","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36","info","production","main","MISS","lambda","/app/main.py","xrat10.vercel.app","xrat10.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",3,"iad1",136,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:10",1740204910871,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",-1,"vxg5q-1740204910822-04014c499ba6","vercel-screenshot/1.0","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:15:10] ""GET / HTTP/1.1"" 200 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:10",1740204910857,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",200,"vxg5q-1740204910822-04014c499ba6","vercel-screenshot/1.0","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",5,"iad1",136,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:10",1740204910712,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",-1,"wmjpc-1740204906853-616f2bc013dd","vercel-screenshot/1.0","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"pe sequence '\['
+""""""lookup_statuses(id, *, include_entities, trim_user, map, \
+/var/task/tweepy/api.py:599: SyntaxWarning: invalid escape sequence '\['
+""""""get_retweeter_ids(id, *, count, cursor, stringify_ids)
+/var/task/tweepy/api.py:634: SyntaxWarning: invalid escape sequence '\['
+""""""get_retweets(id, *, count, trim_user)
+/var/task/tweepy/api.py:667: SyntaxWarning: invalid escape sequence '\['
+""""""get_retweets_of_me(*, count, since_id, max_id, trim_user, \
+/var/task/tweepy/api.py:1055: SyntaxWarning: invalid escape sequence '\ '
+""""""search_tweets(q, *, geocode, lang, locale, result_type, count, \
+/var/task/tweepy/api.py:1157: SyntaxWarning: invalid escape sequence '\['
+""""""get_lists(*, user_id, screen_name, reverse)
+/var/task/tweepy/api.py:1202: SyntaxWarning: invalid escape sequence '\['
+""""""get_list_members(*, list_id, slug, owner_screen_name, owner_id, \
+/var/task/tweepy/api.py:1299: SyntaxWarning: invalid escape sequence '\['
+""""""get_list_memberships(*, user_id, screen_name, count, cursor, \
+/var/task/tweepy/api.py:1342: SyntaxWarning: invalid escape sequence '\['
+""""""get_list_ownerships(*, user_id, screen_name, count, cursor)
+/var/task/tweepy/api.py:1409: SyntaxWarning: invalid escape sequence '\['
+""""""list_timeline( \
+/var/task/tweepy/api.py:1460: SyntaxWarning: invalid escape sequence '\['
+""""""get_list_subscribers( \
+/var/task/tweepy/api.py:1559: SyntaxWarning: invalid escape sequence '\['
+""""""get_list_subscriptions(*, user_id, screen_name, count, cursor)
+/var/task/tweepy/api.py:1927: SyntaxWarning: invalid escape sequence '\['
+""""""get_follower_ids(*, user_id, screen_name, cursor, stringify_ids, \
+/var/task/tweepy/api.py:1966: SyntaxWarning: invalid escape sequence '\['
+""""""get_followers(*, user_id, screen_name, cursor, count, skip_status, \
+/var/task/tweepy/api.py:2008: SyntaxWarning: invalid escape sequence '\['
+""""""get_friend_ids(*, user_id, screen_name, cursor, stringify_ids, \
+/var/task/tweepy/api.py:2047: SyntaxWarning: invalid escape sequence '\['
+""""""get_friends(*, user_id, screen_name, cursor, count, skip_status, \
+/var/task/tweepy/api.py:2089: SyntaxWarning: invalid escape sequence '\['
+""""""incoming_friendships(*, cursor, stringify_ids)
+/var/task/tweepy/api.py:2120: SyntaxWarning: invalid escape sequence '\['
+""""""lookup_friendships(*, screen_name, user_id)
+/var/task/tweepy/api.py:2149: SyntaxWarning: invalid escape sequence '\['
+""""""no_retweets_friendships(*, stringify_ids)
+/var/task/tweepy/api.py:2176: SyntaxWarning: invalid escape sequence '\['
+""""""outgoing_friendships(*, cursor, stringify_ids)
+/var/task/tweepy/api.py:2243: SyntaxWarning: invalid escape sequence '\['
+""""""lookup_users(*, screen_name, user_id, include_entities, tweet_mode)
+/var/task/tweepy/api.py:2290: SyntaxWarning: invalid escape sequence '\['
+""""""search_users(q, *, page, count, include_entities)
+/var/task/tweepy/api.py:2500: SyntaxWarning: invalid escape sequence '\['
+""""""get_saved_searches()
+/var/task/tweepy/api.py:2814: SyntaxWarning: invalid escape sequence '\['
+""""""get_blocked_ids(*, stringify_ids, cursor)
+/var/task/tweepy/api.py:2846: SyntaxWarning: invalid escape sequence '\['
+""""""get_blocks(*, include_entities, skip_status, cursor)
+/var/task/tweepy/api.py:2880: SyntaxWarning: invalid escape sequence '\['
+""""""get_muted_ids(*, stringify_ids, cursor)
+/var/task/tweepy/api.py:2911: SyntaxWarning: invalid escape sequence '\['
+""""""get_mutes(*, cursor, include_entities, skip_status)
+/var/task/tweepy/api.py:3126: SyntaxWarning: invalid escape sequence '\['
+""""""get_direct_messages(*, count, cursor)
+/var/task/tweepy/api.py:3788: SyntaxWarning: invalid escape sequence '\['
+""""""reverse_geocode(lat, long, *, accuracy, granularity, max_results)
+/var/task/tweepy/api.py:3829: SyntaxWarning: invalid escape sequence '\['
+""""""search_geo(*, lat, long, query, ip, granularity, max_results)","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:10",1740204910700,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",-1,"wmjpc-1740204906853-616f2bc013dd","vercel-screenshot/1.0","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:15:10] ""GET / HTTP/1.1"" 200 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:10",1740204910508,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",-1,"mk4j4-1740204910335-cbe1fea933ee","vercel-screenshot/1.0","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:15:10] ""GET / HTTP/1.1"" 200 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:10",1740204910491,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",200,"mk4j4-1740204910335-cbe1fea933ee","vercel-screenshot/1.0","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",3,"iad1",136,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:10",1740204910226,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",-1,"8qm8h-1740204906763-7fca09bc1090","vercel-screenshot/1.0","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"pe sequence '\['
+""""""lookup_statuses(id, *, include_entities, trim_user, map, \
+/var/task/tweepy/api.py:599: SyntaxWarning: invalid escape sequence '\['
+""""""get_retweeter_ids(id, *, count, cursor, stringify_ids)
+/var/task/tweepy/api.py:634: SyntaxWarning: invalid escape sequence '\['
+""""""get_retweets(id, *, count, trim_user)
+/var/task/tweepy/api.py:667: SyntaxWarning: invalid escape sequence '\['
+""""""get_retweets_of_me(*, count, since_id, max_id, trim_user, \
+/var/task/tweepy/api.py:1055: SyntaxWarning: invalid escape sequence '\ '
+""""""search_tweets(q, *, geocode, lang, locale, result_type, count, \
+/var/task/tweepy/api.py:1157: SyntaxWarning: invalid escape sequence '\['
+""""""get_lists(*, user_id, screen_name, reverse)
+/var/task/tweepy/api.py:1202: SyntaxWarning: invalid escape sequence '\['
+""""""get_list_members(*, list_id, slug, owner_screen_name, owner_id, \
+/var/task/tweepy/api.py:1299: SyntaxWarning: invalid escape sequence '\['
+""""""get_list_memberships(*, user_id, screen_name, count, cursor, \
+/var/task/tweepy/api.py:1342: SyntaxWarning: invalid escape sequence '\['
+""""""get_list_ownerships(*, user_id, screen_name, count, cursor)
+/var/task/tweepy/api.py:1409: SyntaxWarning: invalid escape sequence '\['
+""""""list_timeline( \
+/var/task/tweepy/api.py:1460: SyntaxWarning: invalid escape sequence '\['
+""""""get_list_subscribers( \
+/var/task/tweepy/api.py:1559: SyntaxWarning: invalid escape sequence '\['
+""""""get_list_subscriptions(*, user_id, screen_name, count, cursor)
+/var/task/tweepy/api.py:1927: SyntaxWarning: invalid escape sequence '\['
+""""""get_follower_ids(*, user_id, screen_name, cursor, stringify_ids, \
+/var/task/tweepy/api.py:1966: SyntaxWarning: invalid escape sequence '\['
+""""""get_followers(*, user_id, screen_name, cursor, count, skip_status, \
+/var/task/tweepy/api.py:2008: SyntaxWarning: invalid escape sequence '\['
+""""""get_friend_ids(*, user_id, screen_name, cursor, stringify_ids, \
+/var/task/tweepy/api.py:2047: SyntaxWarning: invalid escape sequence '\['
+""""""get_friends(*, user_id, screen_name, cursor, count, skip_status, \
+/var/task/tweepy/api.py:2089: SyntaxWarning: invalid escape sequence '\['
+""""""incoming_friendships(*, cursor, stringify_ids)
+/var/task/tweepy/api.py:2120: SyntaxWarning: invalid escape sequence '\['
+""""""lookup_friendships(*, screen_name, user_id)
+/var/task/tweepy/api.py:2149: SyntaxWarning: invalid escape sequence '\['
+""""""no_retweets_friendships(*, stringify_ids)
+/var/task/tweepy/api.py:2176: SyntaxWarning: invalid escape sequence '\['
+""""""outgoing_friendships(*, cursor, stringify_ids)
+/var/task/tweepy/api.py:2243: SyntaxWarning: invalid escape sequence '\['
+""""""lookup_users(*, screen_name, user_id, include_entities, tweet_mode)
+/var/task/tweepy/api.py:2290: SyntaxWarning: invalid escape sequence '\['
+""""""search_users(q, *, page, count, include_entities)
+/var/task/tweepy/api.py:2500: SyntaxWarning: invalid escape sequence '\['
+""""""get_saved_searches()
+/var/task/tweepy/api.py:2814: SyntaxWarning: invalid escape sequence '\['
+""""""get_blocked_ids(*, stringify_ids, cursor)
+/var/task/tweepy/api.py:2846: SyntaxWarning: invalid escape sequence '\['
+""""""get_blocks(*, include_entities, skip_status, cursor)
+/var/task/tweepy/api.py:2880: SyntaxWarning: invalid escape sequence '\['
+""""""get_muted_ids(*, stringify_ids, cursor)
+/var/task/tweepy/api.py:2911: SyntaxWarning: invalid escape sequence '\['
+""""""get_mutes(*, cursor, include_entities, skip_status)
+/var/task/tweepy/api.py:3126: SyntaxWarning: invalid escape sequence '\['
+""""""get_direct_messages(*, count, cursor)
+/var/task/tweepy/api.py:3788: SyntaxWarning: invalid escape sequence '\['
+""""""reverse_geocode(lat, long, *, accuracy, granularity, max_results)
+/var/task/tweepy/api.py:3829: SyntaxWarning: invalid escape sequence '\['
+""""""search_geo(*, lat, long, query, ip, granularity, max_results)","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:10",1740204910220,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",-1,"8qm8h-1740204906763-7fca09bc1090","vercel-screenshot/1.0","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",-1,"iad1",-1,-1,"127.0.0.1 - - [22/Feb/2025 06:15:10] ""GET / HTTP/1.1"" 200 -","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:07",1740204907011,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",200,"wmjpc-1740204906853-616f2bc013dd","vercel-screenshot/1.0","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",23,"iad1",135,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"
+"2025-02-22 06:15:07",1740204907010,"xrat10-bwdvign7p-matts-projects-9588f051.vercel.app/","GET",200,"8qm8h-1740204906763-7fca09bc1090","vercel-screenshot/1.0","info","production","main","MISS","lambda","/app/main.py","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","xrat10-bwdvign7p-matts-projects-9588f051.vercel.app","dpl_5vhdcaYxDC2i7rh14KJBJpxgz3tf",14,"iad1",136,1769,"","prj_noXmdz2jLxCp19l8K04wcC7ZjxCS"

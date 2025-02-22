@@ -12,6 +12,7 @@ import os
 import logging
 from tweepy import errors as tweepy_errors
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
 from app.db.models import get_db, Analysis
@@ -26,12 +27,23 @@ logger = logging.getLogger(__name__)
 # Initialize FastAPI app
 app = FastAPI(title=get_settings().APP_NAME)
 
-# Add session middleware
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Configure session middleware for serverless
 settings = get_settings()
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.SECRET_KEY,
-    max_age=3600  # 1 hour
+    max_age=3600,  # 1 hour
+    same_site="lax",  # Allows OAuth redirects
+    https_only=True if not settings.DEBUG else False  # Force HTTPS in production
 )
 
 # Helper function to get current user
@@ -116,52 +128,123 @@ if not os.environ.get('VERCEL_ENV'):
     import threading
     threading.Thread(target=start_stream, daemon=True).start()
 
-# OAuth callback route
+# OAuth routes
+@app.get("/auth/twitter")
+async def twitter_auth(request: Request):
+    """
+    Initialize X OAuth authentication.
+    """
+    try:
+        # Initialize OAuth handler with error handling
+        try:
+            oauth1_auth = tweepy.OAuthHandler(
+                settings.X_API_KEY,
+                settings.X_API_SECRET,
+                callback=settings.CALLBACK_URL
+            )
+        except Exception as e:
+            logger.error(f"Failed to initialize OAuth handler: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to initialize authentication. Please check API credentials."
+            )
+        
+        # Get the authorization URL with error handling
+        try:
+            auth_url = oauth1_auth.get_authorization_url(signin_with_twitter=True)
+        except Exception as e:
+            logger.error(f"Failed to get authorization URL: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to get authorization URL. Please try again."
+            )
+        
+        # Store tokens in session with error handling
+        try:
+            request.session["oauth_token"] = oauth1_auth.request_token["oauth_token"]
+            request.session["oauth_token_secret"] = oauth1_auth.request_token["oauth_token_secret"]
+        except Exception as e:
+            logger.error(f"Failed to store tokens in session: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to store authentication data. Please try again."
+            )
+        
+        # Redirect to X for authentication
+        return RedirectResponse(auth_url, status_code=303)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in twitter_auth: {e}")
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "error_code": 500,
+                "error_message": "An unexpected error occurred. Please try again later."
+            }
+        )
+
 @app.get("/callback")
 async def callback(request: Request, oauth_token: str = None, oauth_verifier: str = None):
     """
     Handle X OAuth callback.
     """
     try:
+        # Validate OAuth parameters
         if not oauth_token or not oauth_verifier:
+            logger.error("Missing OAuth parameters")
             raise HTTPException(status_code=400, detail="Missing OAuth parameters")
-            
-        # Get stored request token
-        stored_token = request.session.get("oauth_token")
-        stored_token_secret = request.session.get("oauth_token_secret")
         
-        if not stored_token or not stored_token_secret:
-            raise HTTPException(status_code=400, detail="No OAuth token found in session")
+        # Get stored tokens with error handling
+        try:
+            stored_token = request.session.get("oauth_token")
+            stored_token_secret = request.session.get("oauth_token_secret")
             
-        if stored_token != oauth_token:
-            raise HTTPException(status_code=400, detail="OAuth token mismatch")
+            if not stored_token or not stored_token_secret:
+                logger.error("No OAuth token found in session")
+                raise HTTPException(status_code=400, detail="No OAuth token found in session")
+                
+            if stored_token != oauth_token:
+                logger.error("OAuth token mismatch")
+                raise HTTPException(status_code=400, detail="OAuth token mismatch")
+        except Exception as e:
+            logger.error(f"Session error: {e}")
+            raise HTTPException(status_code=400, detail="Session error. Please try logging in again.")
         
         # Initialize OAuth handler
-        oauth1_auth = tweepy.OAuthHandler(
-            settings.X_API_KEY,
-            settings.X_API_SECRET,
-            callback=settings.CALLBACK_URL
-        )
-        
-        # Set the request token
-        oauth1_auth.request_token = {
-            "oauth_token": stored_token,
-            "oauth_token_secret": stored_token_secret
-        }
+        try:
+            oauth1_auth = tweepy.OAuthHandler(
+                settings.X_API_KEY,
+                settings.X_API_SECRET,
+                callback=settings.CALLBACK_URL
+            )
+            
+            oauth1_auth.request_token = {
+                "oauth_token": stored_token,
+                "oauth_token_secret": stored_token_secret
+            }
+        except Exception as e:
+            logger.error(f"Failed to initialize OAuth handler in callback: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to initialize authentication. Please try again."
+            )
         
         try:
             # Get the access token
             access_token = oauth1_auth.get_access_token(oauth_verifier)
             
-            # Store the tokens (in a real app, save these securely)
+            # Store the tokens securely
             request.session["access_token"] = access_token[0]
             request.session["access_token_secret"] = access_token[1]
             
-            # Initialize API client with the new tokens
+            # Initialize API client and verify credentials
             api = tweepy.API(oauth1_auth, wait_on_rate_limit=True)
             user = api.verify_credentials()
             
-            # Store user info in session
+            # Store user info
             request.session["user"] = {
                 "id": user.id,
                 "username": user.screen_name,
@@ -171,55 +254,26 @@ async def callback(request: Request, oauth_token: str = None, oauth_verifier: st
             
             return templates.TemplateResponse(
                 "auth_success.html",
-                {"request": request}
+                {
+                    "request": request,
+                    "current_user": request.session["user"]
+                }
             )
             
         except tweepy.TweepError as e:
-            raise HTTPException(status_code=400, detail=f"Failed to get access token: {str(e)}")
+            logger.error(f"Tweepy error in callback: {e}")
+            raise HTTPException(status_code=400, detail=f"Authentication failed: {str(e)}")
             
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Authentication error: {e}")
-        return templates.TemplateResponse(
-            "error.html",
-            {
-                "request": request,
-                "error_code": 400,
-                "error_message": f"Authentication failed: {str(e)}"
-            }
-        )
-
-# OAuth routes
-@app.get("/auth/twitter")
-async def twitter_auth(request: Request):
-    """
-    Initialize X OAuth authentication.
-    """
-    try:
-        # Initialize OAuth handler
-        oauth1_auth = tweepy.OAuthHandler(
-            settings.X_API_KEY,
-            settings.X_API_SECRET,
-            callback=settings.CALLBACK_URL
-        )
-        
-        # Get the authorization URL
-        auth_url = oauth1_auth.get_authorization_url()
-        
-        # Store the request token in session (in a real app, use secure session management)
-        request.session["oauth_token"] = oauth1_auth.request_token["oauth_token"]
-        request.session["oauth_token_secret"] = oauth1_auth.request_token["oauth_token_secret"]
-        
-        # Redirect to X for authentication
-        return RedirectResponse(auth_url)
-        
-    except Exception as e:
-        logger.error(f"Error initializing X authentication: {e}")
+        logger.error(f"Unexpected error in callback: {e}")
         return templates.TemplateResponse(
             "error.html",
             {
                 "request": request,
                 "error_code": 500,
-                "error_message": "Failed to initialize X authentication. Please try again."
+                "error_message": "An unexpected error occurred during authentication."
             }
         )
 
