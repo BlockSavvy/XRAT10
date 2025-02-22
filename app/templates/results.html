@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Results - X Thread Analyzer{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="text-center mb-4">
+                <i class="bi bi-graph-up-arrow me-3"></i>
+                Thread Analysis Results
+            </h1>
+            <p class="lead text-center">
+                Analysis completed on {{ analysis.date }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Original Tweet -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-chat-quote-fill me-2"></i>
+                Original Tweet
+            </h5>
+        </div>
+        <div class="card-body">
+            <p class="mb-0">{{ analysis.original_text }}</p>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-chat-dots display-4 mb-3"></i>
+                    <h5>Total Replies</h5>
+                    <h2 class="mb-0">{{ analysis.total_replies }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-emoji-smile display-4 mb-3 sentiment-positive"></i>
+                    <h5>Positive Sentiment</h5>
+                    <h2 class="mb-0">{{ "%.1f"|format(analysis.sentiment_stats.percentages.with) }}%</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-emoji-frown display-4 mb-3 sentiment-negative"></i>
+                    <h5>Negative Sentiment</h5>
+                    <h2 class="mb-0">{{ "%.1f"|format(analysis.sentiment_stats.percentages.against) }}%</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-robot display-4 mb-3 bot-warning"></i>
+                    <h5>Bot Activity</h5>
+                    <h2 class="mb-0">{{ "%.1f"|format(analysis.bot_percentage) }}%</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Sentiment Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Engagement Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notable Quotes -->
+    {% if analysis.sentiment_stats.notable_quotes %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-quote me-2"></i>
+                Notable Quotes
+            </h5>
+        </div>
+        <div class="card-body">
+            {% for quote in analysis.sentiment_stats.notable_quotes %}
+            <div class="quote-card p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>@{{ quote.author }}</strong>
+                    <span class="badge {% if quote.score > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                        {{ "Positive" if quote.score > 0 else "Negative" }}
+                    </span>
+                </div>
+                <p class="mb-0">{{ quote.text }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Keywords -->
+    {% if analysis.sentiment_stats.keywords %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-hash me-2"></i>
+                Trending Keywords
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                {% for keyword, count in analysis.sentiment_stats.keywords.items() %}
+                <span class="badge bg-primary fs-6">
+                    #{{ keyword }}
+                    <span class="badge bg-light text-dark ms-1">{{ count }}</span>
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Response Preview -->
+    {% if response_text %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-reply-fill me-2"></i>
+                Generated Response
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="bg-light p-3 rounded">
+                {{ response_text | replace('\n', '<br>') | safe }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="text-center mb-5">
+        <a href="/" class="btn btn-primary btn-lg me-2">
+            <i class="bi bi-search me-2"></i>
+            Analyze Another Thread
+        </a>
+        <a href="/past_analyses" class="btn btn-outline-primary btn-lg">
+            <i class="bi bi-clock-history me-2"></i>
+            View Past Analyses
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize sentiment chart
+        const sentimentData = {
+            positive: {{ analysis.sentiment_stats.percentages.with }},
+            negative: {{ analysis.sentiment_stats.percentages.against }},
+            neutral: {{ analysis.sentiment_stats.percentages.neutral }}
+        };
+        initializeSentimentChart(
+            document.getElementById('sentimentChart').getContext('2d'),
+            sentimentData
+        );
+
+        // Initialize timeline chart
+        const timelineData = {{ analysis.sentiment_stats.sentiment_progression | tojson }};
+        initializeTimelineChart(
+            document.getElementById('timelineChart').getContext('2d'),
+            timelineData
+        );
+    });
+</script>
+{% endblock %} 

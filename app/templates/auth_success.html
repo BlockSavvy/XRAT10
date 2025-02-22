@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Authentication Successful - X Thread Analyzer{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Authentication Successful
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <i class="bi bi-shield-check me-2"></i>
+                        Your X account has been successfully connected!
+                    </div>
+                    <p class="mt-4">You can now:</p>
+                    <ul class="list-group list-group-flush mt-3">
+                        <li class="list-group-item">
+                            <i class="bi bi-graph-up me-2"></i>
+                            Analyze thread sentiment
+                        </li>
+                        <li class="list-group-item">
+                            <i class="bi bi-robot me-2"></i>
+                            Detect bot activity
+                        </li>
+                        <li class="list-group-item">
+                            <i class="bi bi-chat-quote me-2"></i>
+                            Get engagement insights
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="/" class="btn btn-primary">
+                        <i class="bi bi-house-door-fill me-2"></i>
+                        Return to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

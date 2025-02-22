@@ -1,0 +1,92 @@
+/* Common styles */
+.hero-section {
+    background: linear-gradient(135deg, #1DA1F2 0%, #0D47A1 100%);
+    color: white;
+    padding: 4rem 0;
+    margin-bottom: 2rem;
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #1DA1F2;
+}
+
+/* Sentiment colors */
+.sentiment-positive { color: #28a745; }
+.sentiment-negative { color: #dc3545; }
+.sentiment-neutral { color: #6c757d; }
+.bot-warning { color: #ffc107; }
+
+/* Cards */
+.stat-card {
+    transition: transform 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Sentiment bar */
+.sentiment-bar {
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #e9ecef;
+}
+
+.sentiment-segment {
+    height: 100%;
+    float: left;
+}
+
+.sentiment-segment.sentiment-positive { background-color: #28a745; }
+.sentiment-segment.sentiment-negative { background-color: #dc3545; }
+.sentiment-segment.sentiment-neutral { background-color: #6c757d; }
+
+/* Quote cards */
+.quote-card {
+    background-color: #f8f9fa;
+    border-left: 4px solid #1DA1F2;
+}
+
+/* Trend indicators */
+.trend-indicator {
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+}
+.trend-up { color: #28a745; }
+.trend-down { color: #dc3545; }
+
+/* Form customization */
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: #1DA1F2;
+}
+
+/* Custom tooltip */
+.custom-tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.custom-tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.custom-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+} 

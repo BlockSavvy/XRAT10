@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Home - X Thread Analyzer{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 mb-4">
+            <i class="bi bi-graph-up-arrow me-3"></i>
+            X Thread Analyzer
+        </h1>
+        <p class="lead">
+            Analyze X threads for sentiment, detect bots, and get engaging insights
+        </p>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="row justify-content-center">
+        <!-- Analysis Form -->
+        <div class="col-md-8 mb-5">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">
+                        <i class="bi bi-search me-2"></i>
+                        Analyze a Thread
+                    </h3>
+                    <form action="/analyze" method="POST" class="needs-validation" novalidate>
+                        <div class="form-floating mb-4">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="tweet_id" 
+                                   name="tweet_id" 
+                                   placeholder="Enter Tweet ID"
+                                   required
+                                   pattern="\d+"
+                            >
+                            <label for="tweet_id">Tweet ID</label>
+                            <div class="invalid-feedback">
+                                Please enter a valid Tweet ID (numbers only)
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                The Tweet ID is the number at the end of a tweet's URL
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-lightning-charge me-2"></i>
+                                Analyze Thread
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="text-center">
+                <i class="bi bi-emoji-smile feature-icon"></i>
+                <h4>Sentiment Analysis</h4>
+                <p>Advanced sentiment detection using VADER, specially tuned for social media content</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="text-center">
+                <i class="bi bi-shield-check feature-icon"></i>
+                <h4>Bot Detection</h4>
+                <p>Sophisticated bot detection using multiple factors including behavior patterns and metadata</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="text-center">
+                <i class="bi bi-graph-up feature-icon"></i>
+                <h4>Engagement Insights</h4>
+                <p>Get actionable insights and statistics to boost your engagement and reach</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Past Analyses Link -->
+    <div class="text-center mb-5">
+        <a href="/past_analyses" class="btn btn-outline-primary btn-lg">
+            <i class="bi bi-clock-history me-2"></i>
+            View Past Analyses
+        </a>
+    </div>
+</div>
+{% endblock %} 

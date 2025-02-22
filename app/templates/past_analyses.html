@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Past Analyses - X Thread Analyzer{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="text-center mb-4">
+                <i class="bi bi-clock-history me-3"></i>
+                Past Thread Analyses
+            </h1>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5>Total Analyses</h5>
+                    <h2 class="mb-0">{{ analyses|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5>Average Sentiment</h5>
+                    <h2 class="mb-0">
+                        {{ "%.1f"|format(analyses|map(attribute='with_pct')|sum / analyses|length if analyses else 0) }}%
+                        <i class="bi bi-arrow-up-short trend-indicator trend-up"></i>
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5>Average Engagement</h5>
+                    <h2 class="mb-0">
+                        {{ "%.0f"|format(analyses|map(attribute='total_replies')|sum / analyses|length if analyses else 0) }}
+                        <i class="bi bi-arrow-up-short trend-indicator trend-up"></i>
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5>Bot Detection Rate</h5>
+                    <h2 class="mb-0">
+                        {{ "%.1f"|format(analyses|map(attribute='bot_pct')|sum / analyses|length if analyses else 0) }}%
+                        <i class="bi bi-arrow-down-short trend-indicator trend-down"></i>
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analyses Table -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Analysis History</h5>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-primary" id="exportCSV">
+                        <i class="bi bi-download me-2"></i>
+                        Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <table id="analysesTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Tweet</th>
+                        <th>Sentiment</th>
+                        <th>Replies</th>
+                        <th>Bot %</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for analysis in analyses %}
+                    <tr>
+                        <td>{{ analysis.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 300px;">
+                                {{ analysis.original_text }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="sentiment-bar">
+                                <div class="sentiment-segment sentiment-positive" 
+                                     style="width: {{ analysis.with_pct }}%"
+                                     title="Positive: {{ '%.1f'|format(analysis.with_pct) }}%">
+                                </div>
+                                <div class="sentiment-segment sentiment-negative"
+                                     style="width: {{ analysis.against_pct }}%"
+                                     title="Negative: {{ '%.1f'|format(analysis.against_pct) }}%">
+                                </div>
+                                <div class="sentiment-segment sentiment-neutral"
+                                     style="width: {{ analysis.neutral_pct }}%"
+                                     title="Neutral: {{ '%.1f'|format(analysis.neutral_pct) }}%">
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ analysis.total_replies }}</td>
+                        <td>{{ "%.1f"|format(analysis.bot_pct) }}%</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary view-details"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#analysisModal"
+                                    data-analysis-id="{{ analysis.id }}">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Analysis Details Modal -->
+    <div class="modal fade" id="analysisModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Analysis Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="analysisDetails"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="text-center mb-5">
+        <a href="/" class="btn btn-primary btn-lg">
+            <i class="bi bi-search me-2"></i>
+            Analyze New Thread
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize DataTable
+        initializeDataTable('#analysesTable');
+
+        // Export to CSV
+        $('#exportCSV').click(function() {
+            const data = [];
+            {% for analysis in analyses %}
+            data.push({
+                'Date': '{{ analysis.date.strftime("%Y-%m-%d %H:%M:%S") }}',
+                'Tweet': '{{ analysis.original_text|replace("'", "\\'") }}',
+                'Positive %': '{{ "%.1f"|format(analysis.with_pct) }}',
+                'Negative %': '{{ "%.1f"|format(analysis.against_pct) }}',
+                'Neutral %': '{{ "%.1f"|format(analysis.neutral_pct) }}',
+                'Replies': '{{ analysis.total_replies }}',
+                'Bot %': '{{ "%.1f"|format(analysis.bot_pct) }}'
+            });
+            {% endfor %}
+            exportToCSV(data, 'thread_analyses.csv');
+        });
+
+        // View Details Modal
+        $('.view-details').click(function() {
+            const analysisId = $(this).data('analysis-id');
+            loadAnalysisDetails(analysisId);
+        });
+    });
+</script>
+{% endblock %} 
