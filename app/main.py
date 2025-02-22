@@ -8,6 +8,7 @@ import asyncio
 import json
 from datetime import datetime
 from typing import Dict, List
+import os
 
 from app.core.config import get_settings
 from app.db.models import get_db, Analysis
@@ -16,7 +17,11 @@ from app.services.bot_detection import BotDetector
 
 # Initialize FastAPI app
 app = FastAPI(title=get_settings().APP_NAME)
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+# Only mount static files in development
+if not os.environ.get('VERCEL_ENV'):
+    app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 templates = Jinja2Templates(directory="app/templates")
 
 # Initialize services
@@ -24,45 +29,82 @@ settings = get_settings()
 sentiment_analyzer = SentimentAnalyzer()
 bot_detector = BotDetector()
 
-# X API setup
-try:
-    # OAuth 1.0a setup for user context actions (posting tweets, etc)
-    oauth1_auth = tweepy.OAuthHandler(
-        settings.X_API_KEY, 
-        settings.X_API_SECRET,
-        callback=settings.CALLBACK_URL
-    )
-    oauth1_auth.set_access_token(
-        settings.X_ACCESS_TOKEN, 
-        settings.X_ACCESS_TOKEN_SECRET
-    )
-    api = tweepy.API(oauth1_auth, wait_on_rate_limit=True)
+# X API setup - Move inside a function to avoid startup errors
+def get_api_client():
+    try:
+        if not hasattr(get_api_client, 'api'):
+            # OAuth 1.0a setup for user context actions
+            oauth1_auth = tweepy.OAuthHandler(
+                settings.X_API_KEY, 
+                settings.X_API_SECRET,
+                callback=settings.CALLBACK_URL
+            )
+            oauth1_auth.set_access_token(
+                settings.X_ACCESS_TOKEN, 
+                settings.X_ACCESS_TOKEN_SECRET
+            )
+            get_api_client.api = tweepy.API(oauth1_auth, wait_on_rate_limit=True)
+        return get_api_client.api
+    except Exception as e:
+        print(f"Error initializing X API: {e}")
+        return None
 
-    # OAuth 2.0 setup for v2 endpoints
-    client = tweepy.Client(
-        bearer_token=settings.X_BEARER_TOKEN,
-        consumer_key=settings.X_API_KEY,
-        consumer_secret=settings.X_API_SECRET,
-        access_token=settings.X_ACCESS_TOKEN,
-        access_token_secret=settings.X_ACCESS_TOKEN_SECRET,
-        client_id=settings.CLIENT_ID,
-        client_secret=settings.CLIENT_SECRET,
-        callback=settings.CALLBACK_URL,
-        wait_on_rate_limit=True
-    )
-except Exception as e:
-    print(f"Error initializing X API: {e}")
-    api = None
-    client = None
+def get_client():
+    try:
+        if not hasattr(get_client, 'client'):
+            # OAuth 2.0 setup for v2 endpoints
+            get_client.client = tweepy.Client(
+                bearer_token=settings.X_BEARER_TOKEN,
+                consumer_key=settings.X_API_KEY,
+                consumer_secret=settings.X_API_SECRET,
+                access_token=settings.X_ACCESS_TOKEN,
+                access_token_secret=settings.X_ACCESS_TOKEN_SECRET,
+                client_id=settings.CLIENT_ID,
+                client_secret=settings.CLIENT_SECRET,
+                callback=settings.CALLBACK_URL,
+                wait_on_rate_limit=True
+            )
+        return get_client.client
+    except Exception as e:
+        print(f"Error initializing X client: {e}")
+        return None
+
+# Update the stream initialization to be lazy
+def get_stream():
+    if not hasattr(get_stream, 'stream'):
+        get_stream.stream = TweetStream(settings.X_BEARER_TOKEN)
+    return get_stream.stream
+
+# Only start stream in development
+if not os.environ.get('VERCEL_ENV'):
+    def start_stream():
+        while True:
+            try:
+                stream = get_stream()
+                stream.filter(tweet_fields=["referenced_tweets"])
+            except Exception as e:
+                print(f"Stream error: {e}")
+                continue
+    
+    # Start stream in background
+    import threading
+    threading.Thread(target=start_stream, daemon=True).start()
 
 # OAuth callback route
 @app.get("/callback")
 async def callback(request: Request, oauth_token: str = None, oauth_verifier: str = None):
     try:
         # Get the access token and secret
-        oauth1_auth.request_token = {'oauth_token': oauth_token,
-                                   'oauth_token_secret': oauth_verifier}
-        oauth1_auth.get_access_token(oauth_verifier)
+        oauth1_auth = tweepy.OAuthHandler(
+            settings.X_API_KEY, 
+            settings.X_API_SECRET,
+            callback=settings.CALLBACK_URL
+        )
+        oauth1_auth.set_access_token(
+            settings.X_ACCESS_TOKEN, 
+            settings.X_ACCESS_TOKEN_SECRET
+        )
+        api = tweepy.API(oauth1_auth, wait_on_rate_limit=True)
         
         # Store the tokens (in a real app, save these securely)
         access_token = oauth1_auth.access_token
@@ -85,13 +127,13 @@ async def callback(request: Request, oauth_token: str = None, oauth_verifier: st
 class TweetStream(tweepy.StreamingClient):
     def __init__(self, bearer_token, **kwargs):
         super().__init__(bearer_token, **kwargs)
-        self.client = client  # Store v2 client reference
+        self.client = get_client()  # Store v2 client reference
 
     def on_tweet(self, tweet):
         # Use v2 API to check mentions
         try:
             author = tweet.author_id
-            user = client.get_user(id=author)
+            user = self.client.get_user(id=author)
             if user and f"@{user.data.username}" in tweet.text:
                 asyncio.run_coroutine_threadsafe(analyze_and_reply(tweet.id), loop)
         except Exception as e:
@@ -108,6 +150,10 @@ async def analyze_thread(tweet_id: str) -> Dict:
     Analyze a thread including the original tweet and its replies.
     """
     try:
+        api = get_api_client()
+        if not api:
+            raise HTTPException(status_code=503, detail="API client not available")
+
         # Get original tweet
         original_tweet = api.get_status(tweet_id, tweet_mode="extended")
         original_text = original_tweet.full_text
@@ -171,6 +217,10 @@ async def post_reply(tweet_id: str, analysis_results: Dict):
     Post a reply with analysis results.
     """
     try:
+        api = get_api_client()
+        if not api:
+            raise HTTPException(status_code=503, detail="API client not available")
+
         # Get response tone
         tone = sentiment_analyzer.get_response_tone(analysis_results["sentiment_stats"])
         
@@ -255,6 +305,10 @@ async def analyze(
     Analyze a thread and store results.
     """
     try:
+        api = get_api_client()
+        if not api:
+            raise HTTPException(status_code=503, detail="API client not available")
+
         # Analyze thread
         analysis_results = await analyze_thread(tweet_id)
         
@@ -341,22 +395,6 @@ async def get_stats(db: Session = Depends(get_db)):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching stats: {str(e)}")
-
-# Update the stream initialization
-if api:
-    stream = TweetStream(settings.X_BEARER_TOKEN)
-    
-    def start_stream():
-        while True:
-            try:
-                stream.filter(tweet_fields=["referenced_tweets"])
-            except Exception as e:
-                print(f"Stream error: {e}")
-                continue
-    
-    # Start stream in background
-    import threading
-    threading.Thread(target=start_stream, daemon=True).start()
 
 if __name__ == "__main__":
     import uvicorn

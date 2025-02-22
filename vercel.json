@@ -1,14 +1,9 @@
 {
     "version": 2,
-    "framework": null,
     "builds": [
         {
-            "src": "api/index.py",
-            "use": "@vercel/python",
-            "config": {
-                "runtime": "python3.9",
-                "maxLambdaSize": "15mb"
-            }
+            "src": "app/main.py",
+            "use": "@vercel/python"
         }
     ],
     "routes": [
@@ -18,13 +13,10 @@
         },
         {
             "src": "/(.*)",
-            "dest": "api/index.py"
+            "dest": "app/main.py"
         }
     ],
     "env": {
-        "APP_NAME": "X Thread Analyzer",
-        "DEBUG": "False",
-        "PYTHONPATH": ".",
-        "PORT": "8000"
+        "PYTHONPATH": "."
     }
 } 
