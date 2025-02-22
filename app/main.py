@@ -347,6 +347,11 @@ async def analyze(
     try:
         logger.info(f"Starting analysis for tweet_id: {tweet_id}")
         
+        # Validate tweet_id format
+        if not tweet_id.isdigit():
+            logger.error(f"Invalid tweet ID format: {tweet_id}")
+            raise HTTPException(status_code=400, detail="Invalid tweet ID format. Please provide a valid numeric tweet ID.")
+        
         api = get_api_client()
         if not api:
             logger.error("API client not available")
@@ -354,8 +359,33 @@ async def analyze(
 
         # Analyze thread
         logger.info("Analyzing thread...")
-        analysis_results = await analyze_thread(tweet_id)
-        logger.info("Thread analysis complete")
+        try:
+            analysis_results = await analyze_thread(tweet_id)
+            logger.info("Thread analysis complete")
+        except tweepy_errors.NotFound as e:
+            logger.error(f"Tweet not found: {tweet_id}")
+            raise HTTPException(
+                status_code=404, 
+                detail="Tweet not found. Please verify the tweet ID and ensure the tweet still exists."
+            )
+        except tweepy_errors.Forbidden as e:
+            logger.error(f"Access to tweet forbidden: {tweet_id}")
+            raise HTTPException(
+                status_code=403, 
+                detail="Cannot access this tweet. It may be from a private account or have restricted visibility."
+            )
+        except tweepy_errors.TooManyRequests as e:
+            logger.error("Rate limit exceeded")
+            raise HTTPException(
+                status_code=429, 
+                detail="Rate limit exceeded. Please wait a few minutes and try again."
+            )
+        except tweepy_errors.TweepyException as e:
+            logger.error(f"Tweepy error: {str(e)}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Error accessing tweet: {str(e)}"
+            )
         
         # Post reply
         logger.info("Posting reply...")
