@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - X Thread Analyzer{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Settings Navigation -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="nav flex-column nav-pills" role="tablist">
+                        <button class="nav-link active mb-2" data-bs-toggle="pill" data-bs-target="#accounts">
+                            <i class="bi bi-twitter me-2"></i>Connected Accounts
+                        </button>
+                        <button class="nav-link mb-2" data-bs-toggle="pill" data-bs-target="#preferences">
+                            <i class="bi bi-gear me-2"></i>Preferences
+                        </button>
+                        <button class="nav-link mb-2" data-bs-toggle="pill" data-bs-target="#notifications">
+                            <i class="bi bi-bell me-2"></i>Notifications
+                        </button>
+                        <button class="nav-link mb-2" data-bs-toggle="pill" data-bs-target="#api">
+                            <i class="bi bi-code-slash me-2"></i>API Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Connected Accounts -->
+                <div class="tab-pane fade show active" id="accounts">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Connected X Accounts</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for account in connected_accounts %}
+                            <div class="d-flex align-items-center justify-content-between mb-3 p-3 border rounded">
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ account.profile_image_url }}" 
+                                         alt="Profile" 
+                                         class="rounded-circle me-3"
+                                         style="width: 48px; height: 48px;">
+                                    <div>
+                                        <h6 class="mb-0">@{{ account.username }}</h6>
+                                        <small class="text-muted">Connected on {{ account.connected_date }}</small>
+                                    </div>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-gear-fill"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            <a href="/auth/twitter" class="btn btn-primary mt-3">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Connect Another Account
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preferences -->
+                <div class="tab-pane fade" id="preferences">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Analysis Preferences</h5>
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <h6 class="mb-3">Response Settings</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Response Tone</label>
+                                    <select class="form-select">
+                                        <option value="witty">Witty & Engaging</option>
+                                        <option value="professional">Professional & Formal</option>
+                                        <option value="casual">Casual & Friendly</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Hashtag Usage</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" checked>
+                                        <label class="form-check-label">Include trending hashtags</label>
+                                    </div>
+                                </div>
+
+                                <h6 class="mb-3 mt-4">Grok AI Settings</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">AI Analysis Level</label>
+                                    <select class="form-select">
+                                        <option value="basic">Basic Analysis</option>
+                                        <option value="advanced">Advanced (Grok Enhanced)</option>
+                                        <option value="expert">Expert (Full AI Suite)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Custom Response Template</label>
+                                    <textarea class="form-control" rows="3" placeholder="Enter your custom response template..."></textarea>
+                                    <small class="text-muted">Use {stats}, {sentiment}, {quote} as placeholders</small>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-2"></i>Save Preferences
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Notification Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="mb-3">
+                                    <h6>Email Notifications</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" checked>
+                                        <label class="form-check-label">Analysis Reports</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" checked>
+                                        <label class="form-check-label">Engagement Alerts</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox">
+                                        <label class="form-check-label">Weekly Stats</label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h6>Push Notifications</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" checked>
+                                        <label class="form-check-label">Real-time Analysis Updates</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox">
+                                        <label class="form-check-label">Bot Detection Alerts</label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-2"></i>Save Notification Settings
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Settings -->
+                <div class="tab-pane fade" id="api">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">API Configuration</h5>
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="mb-3">
+                                    <label class="form-label">Grok AI API Key</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" value="{{ grok_api_key }}">
+                                        <button class="btn btn-outline-secondary" type="button">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">Your Grok AI API key for enhanced analysis</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Webhook URL</label>
+                                    <input type="url" class="form-control" placeholder="https://your-webhook-url.com">
+                                    <small class="text-muted">Receive real-time updates via webhook</small>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-2"></i>Save API Settings
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - X Thread Analyzer{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2>
+                <i class="bi bi-speedometer2 me-2"></i>
+                Dashboard
+            </h2>
+            <p class="lead">Welcome back, @{{ current_user.username }}!</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up display-4 text-primary mb-3"></i>
+                    <h5>Total Analyses</h5>
+                    <h2 class="mb-0">{{ stats.total_analyses }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people display-4 text-success mb-3"></i>
+                    <h5>Follower Growth</h5>
+                    <h2 class="mb-0">+{{ stats.follower_growth }}</h2>
+                    <small class="text-muted">Last 30 days</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-chat-dots display-4 text-info mb-3"></i>
+                    <h5>Engagement Rate</h5>
+                    <h2 class="mb-0">{{ stats.engagement_rate }}%</h2>
+                    <small class="text-muted">Avg. per analysis</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-robot display-4 text-warning mb-3"></i>
+                    <h5>Bot Detection</h5>
+                    <h2 class="mb-0">{{ stats.avg_bot_percentage }}%</h2>
+                    <small class="text-muted">Avg. detected</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Sentiment Trends</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="sentimentTrend"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Engagement Analytics</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="engagementChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Analyses and Insights -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Analyses</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Thread</th>
+                                    <th>Sentiment</th>
+                                    <th>Engagement</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for analysis in recent_analyses %}
+                                <tr>
+                                    <td>{{ analysis.date }}</td>
+                                    <td class="text-truncate" style="max-width: 200px;">
+                                        {{ analysis.original_text }}
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-success" 
+                                                 role="progressbar" 
+                                                 style="width: {{ analysis.with_pct }}%">
+                                                {{ analysis.with_pct }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ analysis.engagement_rate }}%</td>
+                                    <td>
+                                        <a href="/analysis/{{ analysis.id }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Grok AI Insights</h5>
+                </div>
+                <div class="card-body">
+                    <div class="insights-list">
+                        {% for insight in grok_insights %}
+                        <div class="insight-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-lightbulb text-warning me-2"></i>
+                                <strong>{{ insight.title }}</strong>
+                            </div>
+                            <p class="mb-0 text-muted">{{ insight.description }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sentiment Trends Chart
+    const sentimentCtx = document.getElementById('sentimentTrend').getContext('2d');
+    new Chart(sentimentCtx, {
+        type: 'line',
+        data: {
+            labels: {{ sentiment_dates | tojson | safe }},
+            datasets: [{
+                label: 'Positive',
+                data: {{ sentiment_positive | tojson | safe }},
+                borderColor: '#28a745',
+                fill: false
+            }, {
+                label: 'Negative',
+                data: {{ sentiment_negative | tojson | safe }},
+                borderColor: '#dc3545',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    // Engagement Chart
+    const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+    new Chart(engagementCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ engagement_dates | tojson | safe }},
+            datasets: [{
+                label: 'Engagement Rate',
+                data: {{ engagement_rates | tojson | safe }},
+                backgroundColor: '#1DA1F2'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 

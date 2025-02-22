@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Login - X Thread Analyzer{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-twitter me-2"></i>
+                        Login with X
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <p class="lead">Connect your X account to start analyzing threads and engaging with your audience.</p>
+                    </div>
+                    
+                    <div class="features-list mb-4">
+                        <h5 class="mb-3">What you'll get:</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <i class="bi bi-graph-up text-primary me-2"></i>
+                                Real-time thread analysis with Grok AI
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-robot text-primary me-2"></i>
+                                Advanced bot detection
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-chat-quote text-primary me-2"></i>
+                                Smart, engaging responses
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-people text-primary me-2"></i>
+                                Follower growth strategies
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="/auth/twitter" class="btn btn-primary btn-lg">
+                            <i class="bi bi-twitter me-2"></i>
+                            Continue with X
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#privacyModal">
+                            <i class="bi bi-shield-check me-2"></i>
+                            Privacy & Permissions
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Privacy & Permissions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>We'll need permission to:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle text-success me-2"></i>Read your tweets and replies</li>
+                    <li><i class="bi bi-check-circle text-success me-2"></i>Post replies on your behalf</li>
+                    <li><i class="bi bi-check-circle text-success me-2"></i>Access your basic profile info</li>
+                </ul>
+                <p class="mt-3">We value your privacy:</p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-shield-fill-check text-primary me-2"></i>We never store your X password</li>
+                    <li><i class="bi bi-shield-fill-check text-primary me-2"></i>Your data is encrypted</li>
+                    <li><i class="bi bi-shield-fill-check text-primary me-2"></i>You can revoke access anytime</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
