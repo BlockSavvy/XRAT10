@@ -71,6 +71,8 @@ grok_ai = GrokAI()
 def get_api_client():
     try:
         if not hasattr(get_api_client, 'api'):
+            # Get fresh settings
+            settings = get_settings()
             # OAuth 1.0a setup for user context actions
             oauth1_auth = tweepy.OAuthHandler(
                 settings.X_API_KEY, 
@@ -90,6 +92,8 @@ def get_api_client():
 def get_client():
     try:
         if not hasattr(get_client, 'client'):
+            # Get fresh settings
+            settings = get_settings()
             # OAuth 2.0 setup for v2 endpoints
             get_client.client = tweepy.Client(
                 bearer_token=settings.X_BEARER_TOKEN,
@@ -135,6 +139,9 @@ async def twitter_auth(request: Request):
     Initialize X OAuth authentication.
     """
     try:
+        # Get fresh settings
+        settings = get_settings()
+        
         # Initialize OAuth handler with error handling
         try:
             oauth1_auth = tweepy.OAuthHandler(
@@ -192,6 +199,9 @@ async def callback(request: Request, oauth_token: str = None, oauth_verifier: st
     Handle X OAuth callback.
     """
     try:
+        # Get fresh settings
+        settings = get_settings()
+        
         # Validate OAuth parameters
         if not oauth_token or not oauth_verifier:
             logger.error("Missing OAuth parameters")
